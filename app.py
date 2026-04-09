@@ -14,6 +14,8 @@ from services.generator import (
     generate_storyboard_stream,
     redo_section_stream,
     redo_full_stream,
+    structure_script_stream,
+    generate_visuals_stream,
 )
 from services.exporter import markdown_to_docx, script_to_docx
 
@@ -157,6 +159,39 @@ def generate(project_id):
         channel_name=channel_name,
         sibling_ids=siblings if siblings else None,
     )
+
+
+@app.route("/bytes")
+def bytes_page():
+    return render_template("bytes.html")
+
+
+@app.route("/api/bytes/structure", methods=["POST"])
+def bytes_structure():
+    from config import ANTHROPIC_API_KEY
+    if not ANTHROPIC_API_KEY:
+        return jsonify({"error": "ANTHROPIC_API_KEY not set"}), 500
+
+    script = request.form.get("script", "")
+    category = request.form.get("category", "")
+    if not script or not category:
+        return jsonify({"error": "Script and category required"}), 400
+
+    return sse_stream(structure_script_stream(script, category))
+
+
+@app.route("/api/bytes/visuals", methods=["POST"])
+def bytes_visuals():
+    from config import ANTHROPIC_API_KEY
+    if not ANTHROPIC_API_KEY:
+        return jsonify({"error": "ANTHROPIC_API_KEY not set"}), 500
+
+    script = request.form.get("script", "")
+    category = request.form.get("category", "")
+    if not script or not category:
+        return jsonify({"error": "Script and category required"}), 400
+
+    return sse_stream(generate_visuals_stream(script, category))
 
 
 @app.route("/history")

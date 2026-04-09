@@ -3,9 +3,12 @@
   "configurations": [
     {
       "name": "storyboard-studio",
-      "runtimeExecutable": "/usr/bin/python3",
-      "runtimeArgs": ["/Users/piyushpohekar/Desktop/Claude explorations/Storyboarding/app.py"],
-      "port": 5000
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["app.py"],
+      "port": 5001,
+      "env": {
+        "PORT": "5001"
+      }
     }
   ]
 }

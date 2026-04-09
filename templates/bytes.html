@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}A1 Bytes — News Shorts{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/bytes.css">
+
+<!-- Cost Counter (floating) -->
+<div id="cost-counter" class="cost-counter" style="display:none;"></div>
+
+<div class="bytes-header">
+  <h2>A1 Bytes — News Shorts</h2>
+  <p>Visual storyboard tool for Angel One Bytes short-form content</p>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="tab1">Script Structures</button>
+  <button class="tab-btn" data-tab="tab2">Script Modifier</button>
+  <button class="tab-btn" data-tab="tab3">Visual Generator</button>
+  <button class="tab-btn" data-tab="tab4">All Visuals (8 News)</button>
+</div>
+
+<!-- ═══ Tab 1: Script Structures ═══ -->
+<div class="tab-panel active" id="tab1">
+  <div id="tab1-content">
+    <p style="color:var(--t3);">Loading structures...</p>
+  </div>
+</div>
+
+<!-- ═══ Tab 2: Script Modifier ═══ -->
+<div class="tab-panel" id="tab2">
+  <div class="input-section">
+    <h3 style="font-size:1rem;margin-bottom:14px;">Structure a Script</h3>
+    <p style="font-size:0.82rem;color:var(--t2);margin-bottom:16px;">
+      Paste a raw news script and select the content category. The LLM will reformat it to match the category's visual framework pattern.
+    </p>
+
+    <div class="input-row">
+      <div>
+        <label for="input-category">Category</label>
+        <select id="input-category">
+          <option value="">Select category...</option>
+          <option value="stock">Stock Price Movement</option>
+          <option value="ipo">IPO</option>
+          <option value="earnings">Earnings / Results</option>
+          <option value="macro">Knowledge / Macro</option>
+          <option value="tech">Tech / Strategic Update</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label for="input-script">Raw Script</label>
+      <textarea id="input-script" placeholder="Paste the raw news script here..."></textarea>
+    </div>
+
+    <button class="btn-generate" id="btn-structure" onclick="structureScript()">
+      <span class="spinner"></span>
+      Structure It
+    </button>
+
+    <div style="position:relative;margin-top:20px;">
+      <div class="output-area" id="output-structured"></div>
+      <button class="btn-copy" onclick="copyOutput('output-structured')" style="display:none;" id="copy-structured">Copy</button>
+    </div>
+    <button class="btn-use-in-tab3" onclick="useInTab3()" style="display:none;" id="use-in-tab3">
+      Use this in Visual Generator →
+    </button>
+  </div>
+</div>
+
+<!-- ═══ Tab 3: Visual Generator ═══ -->
+<div class="tab-panel" id="tab3">
+  <div class="input-section">
+    <h3 style="font-size:1rem;margin-bottom:14px;">Generate Visual Breakdown</h3>
+    <p style="font-size:0.82rem;color:var(--t2);margin-bottom:16px;">
+      Paste a structured script (or use output from Tab 2). The LLM will generate a shot-by-shot visual storyboard — defining presenter vs b-roll, supers, and b-roll descriptions for each shot.
+    </p>
+
+    <div class="input-row">
+      <div>
+        <label for="visual-category">Category</label>
+        <select id="visual-category">
+          <option value="">Select category...</option>
+          <option value="stock">Stock Price Movement</option>
+          <option value="ipo">IPO</option>
+          <option value="earnings">Earnings / Results</option>
+          <option value="macro">Knowledge / Macro</option>
+          <option value="tech">Tech / Strategic Update</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label for="visual-script">Script</label>
+      <textarea id="visual-script" placeholder="Paste the structured script here..."></textarea>
+    </div>
+
+    <button class="btn-generate" id="btn-visuals" onclick="generateVisuals()">
+      <span class="spinner"></span>
+      Generate Visuals
+    </button>
+
+    <div id="output-visuals" style="margin-top:20px;"></div>
+
+    <details style="margin-top:12px;">
+      <summary style="font-size:0.75rem;color:var(--t3);cursor:pointer;">Raw LLM output</summary>
+      <div class="output-area" id="output-visuals-raw" style="margin-top:8px;font-size:0.75rem;font-family:'JetBrains Mono',monospace;"></div>
+    </details>
+  </div>
+</div>
+
+<!-- ═══ Tab 4: All 8 News Visuals ═══ -->
+<div class="tab-panel" id="tab4">
+  <div style="margin-bottom:16px;">
+    <p style="font-size:0.84rem;color:var(--t2);">
+      Pre-generated shot-by-shot visual breakdowns for all 8 news scripts from the April 9, 2026 batch. Click any item to expand.
+    </p>
+  </div>
+  <div id="tab4-content">
+    <p style="color:var(--t3);">Loading visuals...</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/frames.js"></script>
+<script src="/static/bytes.js"></script>
+<script>
+// Show copy + use buttons when output appears
+const observer = new MutationObserver(() => {
+  const out = document.getElementById('output-structured');
+  const copyBtn = document.getElementById('copy-structured');
+  const useBtn = document.getElementById('use-in-tab3');
+  if (out && out.textContent.trim()) {
+    if (copyBtn) copyBtn.style.display = 'block';
+    if (useBtn) useBtn.style.display = 'inline-block';
+  }
+});
+const target = document.getElementById('output-structured');
+if (target) observer.observe(target, { childList: true, characterData: true, subtree: true });
+</script>
+{% endblock %}
