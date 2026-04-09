@@ -175,13 +175,20 @@ def history():
 
 @app.route("/api/stream-script/<int:project_id>")
 def stream_script(project_id):
+    from config import ANTHROPIC_API_KEY
+    if not ANTHROPIC_API_KEY:
+        return jsonify({"error": "ANTHROPIC_API_KEY not set"}), 500
+
     project = get_project(project_id)
     channel = get_channel(project["channel_slug"]) if project else None
     if not project or not channel:
         return jsonify({"error": "Not found"}), 404
 
-    images = json.loads(project["research_images"]) if project.get("research_images") else []
-    return sse_stream(generate_script_stream(project["research_input"], channel, images))
+    try:
+        images = json.loads(project["research_images"]) if project.get("research_images") else []
+        return sse_stream(generate_script_stream(project["research_input"], channel, images))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/stream-storyboard/<int:project_id>", methods=["POST"])
