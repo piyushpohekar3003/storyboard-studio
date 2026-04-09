@@ -5,3 +5,4 @@ requests
 python-docx
 beautifulsoup4
 gunicorn
+gevent
