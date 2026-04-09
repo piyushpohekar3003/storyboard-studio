@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}History — Storyboard Studio{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h2>History</h2>
+    <p>Browse past projects</p>
+</div>
+
+<div class="filter-row">
+    <a href="/history" class="filter-pill {{ 'active' if not filter else '' }}">All</a>
+    {% for ch in channels %}
+    <a href="/history?channel={{ ch.slug }}" class="filter-pill {{ 'active' if filter == ch.slug else '' }}">{{ ch.name }}</a>
+    {% endfor %}
+</div>
+
+<div class="glass card">
+{% if projects %}
+<table class="history-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Topic</th>
+            <th>Channel</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in projects %}
+        <tr>
+            <td style="color:var(--text-tertiary)">{{ p.id }}</td>
+            <td><strong>{{ p.topic }}</strong></td>
+            <td>{{ p.channel_slug.replace('a1_', 'A1 ').replace('_', ' ').title() }}</td>
+            <td>
+                {% if p.status == 'complete' %}
+                <span class="badge badge-complete">Complete</span>
+                {% elif p.status == 'script_done' %}
+                <span class="badge badge-progress">Script Done</span>
+                {% else %}
+                <span class="badge badge-draft">Draft</span>
+                {% endif %}
+            </td>
+            <td style="color:var(--text-tertiary)">{{ p.created_at[:16] if p.created_at else '' }}</td>
+            <td>
+                <a href="/generate/{{ p.id }}">Open</a>
+                {% if p.generated_storyboard %}
+                · <a href="/export/{{ p.id }}">Export</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div style="text-align:center;padding:3rem;color:var(--text-tertiary);">
+    <p style="font-size:2rem;margin-bottom:0.5rem;">✦</p>
+    <p>No projects yet.</p>
+    <a href="/" class="btn btn-primary btn-sm" style="margin-top:1rem;">Create your first project</a>
+</div>
+{% endif %}
+</div>
+
+{% endblock %}

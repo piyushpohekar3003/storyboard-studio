@@ -1,0 +1,8 @@
+anthropic
+python-docx
+flask
+flask-socketio
+python-dotenv
+openpyxl
+requests
+beautifulsoup4

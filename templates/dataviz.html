@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Viz Studio</title>
+    <link rel="stylesheet" href="/static/dataviz.css">
+</head>
+<body>
+<div class="dataviz-page">
+    <!-- Sidebar -->
+    <div class="dataviz-sidebar">
+        <div class="sidebar-header">
+            <h2>Data Viz Studio</h2>
+            <p>Neon glow visualizations &middot; JSON &rarr; Image</p>
+        </div>
+
+        <div class="sidebar-controls">
+            <button class="preset-btn active" data-preset="stats">Stats</button>
+            <button class="preset-btn" data-preset="bars">Bars</button>
+            <button class="preset-btn" data-preset="hbar">H-Bars</button>
+            <button class="preset-btn" data-preset="comparison">Compare</button>
+            <button class="preset-btn" data-preset="donut">Donut</button>
+            <button class="preset-btn" data-preset="callouts">Callouts</button>
+            <button class="preset-btn" data-preset="flowchart">Flow</button>
+            <button class="preset-btn" data-preset="table">Table</button>
+            <button class="preset-btn" data-preset="title">Title</button>
+        </div>
+
+        <div class="sidebar-editor">
+            <label>JSON Data (Ctrl+Enter to render)</label>
+            <textarea id="data-input" spellcheck="false"></textarea>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="render-btn primary" id="render-btn">Render</button>
+            <button class="render-btn secondary" id="clear-btn">Clear</button>
+        </div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="dataviz-canvas">
+        <div class="export-controls">
+            <button class="export-btn" id="export-png">Export PNG</button>
+        </div>
+
+        <div class="frame" id="viz-frame">
+            <div class="frame-content" id="frame-content">
+                <div class="frame-placeholder">
+                    <div class="icon">&#9672;</div>
+                    <p>Enter JSON data and click Render</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="/static/dataviz.js"></script>
+</body>
+</html>

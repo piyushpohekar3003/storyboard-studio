@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <!-- Fonts -->
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=Bebas+Neue&amp;display=swap');
+
+      /* Glow filters */
+      .gold-text { fill: #ffd700; font-family: 'Bebas Neue', sans-serif; }
+      .cyan-text { fill: #00e5ff; font-family: 'Bebas Neue', sans-serif; }
+      .mint-text { fill: #00e5a0; font-family: 'Bebas Neue', sans-serif; }
+      .white-text { fill: #f0f0f5; font-family: 'Inter', sans-serif; }
+      .muted-text { fill: #6a6a7a; font-family: 'Inter', sans-serif; }
+      .bebas { font-family: 'Bebas Neue', sans-serif; }
+      .inter { font-family: 'Inter', sans-serif; }
+
+      /* Orbiting dot */
+      @keyframes orbitGold {
+        0%   { cx: 370; cy: 293; }
+        25%  { cx: 730; cy: 293; }
+        25.1%{ cx: 737; cy: 300; }
+        50%  { cx: 737; cy: 680; }
+        50.1%{ cx: 730; cy: 687; }
+        75%  { cx: 370; cy: 687; }
+        75.1%{ cx: 363; cy: 680; }
+        100% { cx: 363; cy: 300; }
+      }
+      @keyframes orbitMint {
+        0%   { cx: 1190; cy: 293; }
+        25%  { cx: 1550; cy: 293; }
+        25.1%{ cx: 1557; cy: 300; }
+        50%  { cx: 1557; cy: 680; }
+        50.1%{ cx: 1550; cy: 687; }
+        75%  { cx: 1190; cy: 687; }
+        75.1%{ cx: 1183; cy: 680; }
+        100% { cx: 1183; cy: 300; }
+      }
+      .dot-gold { animation: orbitGold 8s linear infinite; }
+      .dot-mint { animation: orbitMint 8s linear infinite; }
+
+      /* Glow pulse */
+      @keyframes glowPulse {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+      }
+      .glow-pulse { animation: glowPulse 3s ease-in-out infinite; }
+
+      /* Float */
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+      }
+      .float-gold { animation: float 4s ease-in-out infinite; transform-origin: 550px 490px; }
+      .float-mint { animation: float 4s ease-in-out infinite 0.5s; transform-origin: 1370px 490px; }
+    </style>
+
+    <!-- Gold glow filter -->
+    <filter id="glow-gold" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0.84 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0" result="colored"/>
+      <feMerge><feMergeNode in="colored"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Cyan glow filter -->
+    <filter id="glow-cyan" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0.9 0 0 0 0  1 0 0 0 0  0 0 0 0.5 0" result="colored"/>
+      <feMerge><feMergeNode in="colored"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Mint glow filter -->
+    <filter id="glow-mint" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0.9 0 0 0 0  0.63 0 0 0 0  0 0 0 0.5 0" result="colored"/>
+      <feMerge><feMergeNode in="colored"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Card shadow -->
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="20" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+
+    <!-- Hex pattern -->
+    <pattern id="hex" x="0" y="0" width="60" height="52" patternUnits="userSpaceOnUse">
+      <path d="M30 0l30 15v22l-30 15L0 37V15z" fill="none" stroke="rgba(180,100,30,0.05)" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="#0a0a0f"/>
+
+  <!-- Warm corner glows -->
+  <ellipse cx="0" cy="1080" rx="800" ry="600" fill="url(#warmBL)" opacity="1"/>
+  <radialGradient id="warmBL" cx="0" cy="1" r="1"><stop offset="0%" stop-color="rgb(180,100,30)" stop-opacity="0.18"/><stop offset="100%" stop-color="rgb(180,100,30)" stop-opacity="0"/></radialGradient>
+
+  <ellipse cx="1920" cy="0" rx="700" ry="500" fill="url(#warmTR)" opacity="1"/>
+  <radialGradient id="warmTR" cx="1" cy="0" r="1"><stop offset="0%" stop-color="rgb(180,100,30)" stop-opacity="0.08"/><stop offset="100%" stop-color="rgb(180,100,30)" stop-opacity="0"/></radialGradient>
+
+  <ellipse cx="1920" cy="1080" rx="750" ry="550" fill="url(#warmBR)" opacity="1"/>
+  <radialGradient id="warmBR" cx="1" cy="1" r="1"><stop offset="0%" stop-color="rgb(180,100,30)" stop-opacity="0.14"/><stop offset="100%" stop-color="rgb(180,100,30)" stop-opacity="0"/></radialGradient>
+
+  <!-- Hex grid overlay -->
+  <rect width="1920" height="1080" fill="url(#hex)" opacity="0.5"/>
+
+  <!-- ===== TITLE ===== -->
+  <text x="960" y="160" text-anchor="middle" class="bebas" fill="#f0f0f5" font-size="56" letter-spacing="5">Why Hold Gold When Bonds Pay You?</text>
+
+  <!-- ===== LEFT CARD: GOLD 0% ===== -->
+  <g class="float-gold">
+    <!-- Card background -->
+    <rect x="370" y="300" width="360" height="380" rx="20" ry="20" fill="rgba(15,15,25,0.88)" stroke="#ffd700" stroke-width="2.5" stroke-opacity="0.4" filter="url(#card-shadow)"/>
+
+    <!-- Label -->
+    <text x="550" y="370" text-anchor="middle" class="inter" fill="#f0f0f5" font-size="22" font-weight="700" letter-spacing="3" opacity="0.85">GOLD YIELD</text>
+
+    <!-- Value -->
+    <text x="550" y="510" text-anchor="middle" class="gold-text" font-size="110" filter="url(#glow-gold)">0%</text>
+
+    <!-- Sub -->
+    <text x="550" y="560" text-anchor="middle" class="inter" fill="#f0f0f5" font-size="18" font-weight="600" letter-spacing="1.5" opacity="0.6">NON-YIELDING ASSET</text>
+
+    <!-- Orbiting dot -->
+    <circle class="dot-gold" r="7" fill="#ffd700" filter="url(#glow-gold)"/>
+  </g>
+
+  <!-- ===== VS DIVIDER ===== -->
+  <g>
+    <line x1="960" y1="360" x2="960" y2="440" stroke="#6a6a7a" stroke-width="2" opacity="0.4"/>
+    <text x="960" y="500" text-anchor="middle" class="bebas" fill="#6a6a7a" font-size="36" letter-spacing="4">VS</text>
+    <line x1="960" y1="520" x2="960" y2="600" stroke="#6a6a7a" stroke-width="2" opacity="0.4"/>
+  </g>
+
+  <!-- ===== RIGHT CARD: BOND 4.3% ===== -->
+  <g class="float-mint">
+    <!-- Card background -->
+    <rect x="1190" y="300" width="360" height="380" rx="20" ry="20" fill="rgba(15,15,25,0.88)" stroke="#00e5a0" stroke-width="2.5" stroke-opacity="0.4" filter="url(#card-shadow)"/>
+
+    <!-- Label -->
+    <text x="1370" y="370" text-anchor="middle" class="inter" fill="#f0f0f5" font-size="22" font-weight="700" letter-spacing="3" opacity="0.85">US 10Y BOND</text>
+
+    <!-- Value -->
+    <text x="1370" y="510" text-anchor="middle" class="mint-text" font-size="110" filter="url(#glow-mint)">4.3%</text>
+
+    <!-- Sub -->
+    <text x="1370" y="560" text-anchor="middle" class="inter" fill="#f0f0f5" font-size="18" font-weight="600" letter-spacing="1.5" opacity="0.6">STEADY INCOME + SAFETY</text>
+
+    <!-- Orbiting dot -->
+    <circle class="dot-mint" r="7" fill="#00e5a0" filter="url(#glow-mint)"/>
+  </g>
+
+  <!-- ===== BOTTOM INSIGHT ===== -->
+  <text x="960" y="820" text-anchor="middle" class="inter" fill="#ffd700" font-size="26" font-weight="700">Investors are getting paid to stay safe</text>
+  <text x="960" y="860" text-anchor="middle" class="inter" fill="#6a6a7a" font-size="18">When money flows towards yield, gold — which offers none — quietly takes a back seat</text>
+
+  <!-- ===== BOTTOM CALLOUT CARDS ===== -->
+  <!-- Left callout -->
+  <g>
+    <rect x="320" y="910" width="380" height="100" rx="14" ry="14" fill="rgba(15,15,25,0.88)" stroke="#ff4466" stroke-width="2" stroke-opacity="0.3"/>
+    <rect x="360" y="903" width="12" height="12" rx="3" fill="#ff4466" class="glow-pulse"/>
+    <text x="510" y="952" text-anchor="middle" class="inter" fill="#ff4466" font-size="18" font-weight="800" letter-spacing="2">SHORT-TERM PRESSURE</text>
+    <text x="510" y="980" text-anchor="middle" class="inter" fill="rgba(240,240,245,0.7)" font-size="14">High rates keep gold under pressure</text>
+  </g>
+
+  <!-- Right callout -->
+  <g>
+    <rect x="1220" y="910" width="380" height="100" rx="14" ry="14" fill="rgba(15,15,25,0.88)" stroke="#00e5a0" stroke-width="2" stroke-opacity="0.3"/>
+    <rect x="1260" y="903" width="12" height="12" rx="3" fill="#00e5a0" class="glow-pulse"/>
+    <text x="1410" y="952" text-anchor="middle" class="inter" fill="#00e5a0" font-size="18" font-weight="800" letter-spacing="2">LONG-TERM INTACT</text>
+    <text x="1410" y="980" text-anchor="middle" class="inter" fill="rgba(240,240,245,0.7)" font-size="14">Rate cuts will trigger the next gold rally</text>
+  </g>
+
+  <!-- Source -->
+  <text x="960" y="1060" text-anchor="middle" class="inter" fill="#6a6a7a" font-size="11" opacity="0.5" letter-spacing="1">Source: Investing.com · US Federal Reserve</text>
+</svg>

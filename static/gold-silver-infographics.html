@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why Gold & Silver Are Falling Despite War</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0a0a0f;--bg-card:rgba(15,15,25,0.88);
+--cyan:#00e5ff;--gold:#ffd700;--purple:#b388ff;--mint:#00e5a0;--red:#ff4466;--blue:#4488ff;--orange:#ff8844;
+--white:#f0f0f5;--muted:#6a6a7a;
+--glow-cyan:0 0 24px rgba(0,229,255,.5),0 0 48px rgba(0,229,255,.2);
+--glow-gold:0 0 24px rgba(255,215,0,.5),0 0 48px rgba(255,215,0,.2);
+--glow-purple:0 0 24px rgba(179,136,255,.5),0 0 48px rgba(179,136,255,.2);
+--glow-mint:0 0 24px rgba(0,229,160,.5),0 0 48px rgba(0,229,160,.2);
+--glow-red:0 0 24px rgba(255,68,102,.5),0 0 48px rgba(255,68,102,.2);
+}
+body{background:#060609;color:var(--white);font-family:'Inter',sans-serif}
+
+/* === PAGE === */
+.page-header{text-align:center;padding:56px 40px 40px;border-bottom:1px solid rgba(255,255,255,.05)}
+.page-header h1{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:var(--gold);text-shadow:var(--glow-gold)}
+.page-header p{font-size:13px;color:var(--muted);margin-top:6px;letter-spacing:1px}
+.gallery{max-width:1980px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:44px}
+.frame-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:8px;padding-left:4px}
+
+/* === FRAME === */
+.frame{
+    width:1920px;height:1080px;
+    background:var(--bg);position:relative;overflow:hidden;
+    border-radius:10px;border:1px solid rgba(255,255,255,.04);
+    transform-origin:top left;transform:scale(var(--frame-scale,.5));
+    margin-bottom:calc(-1080px*(1 - var(--frame-scale,.5)));
+}
+.frame::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 0% 100%,rgba(180,100,30,.18) 0%,transparent 50%),radial-gradient(ellipse at 100% 0%,rgba(180,100,30,.08) 0%,transparent 40%),radial-gradient(ellipse at 100% 100%,rgba(180,100,30,.14) 0%,transparent 45%);pointer-events:none;z-index:0}
+.frame::after{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpath d='M30 0l30 15v22l-30 15L0 37V15z' fill='none' stroke='rgba(180,100,30,0.05)' stroke-width='1'/%3E%3C/svg%3E");background-size:60px 52px;opacity:.5;pointer-events:none;z-index:0}
+
+/* Anchor */
+.anchor{position:absolute;z-index:1;bottom:0;left:50%;transform:translateX(-50%);height:88%;width:auto;object-fit:contain;object-position:bottom center}
+.overlay{position:absolute;inset:0;z-index:2;pointer-events:none}
+.overlay>*{pointer-events:auto}
+
+/* Full screen content */
+.fs{position:relative;z-index:1;width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:64px 80px}
+
+/* === ANIMATIONS === */
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeSlideLeft{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeSlideRight{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes glowPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.15)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes barGrow{from{width:0}to{width:var(--bar-w)}}
+@keyframes numberPop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes orbitDot{
+    0%{top:-7px;left:0}
+    25%{top:-7px;left:calc(100% - 12px)}
+    25.01%{top:0;left:calc(100% - 5px)}
+    50%{top:calc(100% - 12px);left:calc(100% - 5px)}
+    50.01%{top:calc(100% - 5px);left:calc(100% - 12px)}
+    75%{top:calc(100% - 5px);left:0}
+    75.01%{top:calc(100% - 12px);left:-7px}
+    99.99%{top:0;left:-7px}
+    100%{top:-7px;left:0}
+}
+
+.anim-up{animation:fadeSlideUp .7s ease both}
+.anim-left{animation:fadeSlideLeft .7s ease both}
+.anim-right{animation:fadeSlideRight .7s ease both}
+.anim-glow{animation:glowPulse 3s ease-in-out infinite}
+.anim-float{animation:float 4s ease-in-out infinite}
+.anim-pop{animation:numberPop .5s ease both}
+.d1{animation-delay:.1s}.d2{animation-delay:.25s}.d3{animation-delay:.4s}.d4{animation-delay:.55s}.d5{animation-delay:.7s}.d6{animation-delay:.85s}.d7{animation-delay:1s}
+
+/* === LARGE STAT CARD === */
+.bigcard{
+    position:absolute;
+    background:var(--bg-card);backdrop-filter:blur(14px);
+    border:2.5px solid;border-radius:20px;
+    padding:40px 52px;text-align:center;
+    min-width:340px;
+}
+.bigcard .bc-label{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:3px;margin-bottom:12px;opacity:.85}
+.bigcard .bc-value{font-family:'Bebas Neue',sans-serif;font-size:92px;line-height:1}
+.bigcard .bc-sub{font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;opacity:.6;margin-top:8px}
+.bigcard::after{content:'';position:absolute;width:12px;height:12px;border-radius:3px;animation:orbitDot 8s linear infinite}
+
+.bigcard.c-cyan{border-color:rgba(0,229,255,.4)}.bigcard.c-cyan .bc-value{color:var(--cyan);text-shadow:var(--glow-cyan)}.bigcard.c-cyan::after{background:var(--cyan);box-shadow:var(--glow-cyan)}
+.bigcard.c-gold{border-color:rgba(255,215,0,.4)}.bigcard.c-gold .bc-value{color:var(--gold);text-shadow:var(--glow-gold)}.bigcard.c-gold::after{background:var(--gold);box-shadow:var(--glow-gold)}
+.bigcard.c-purple{border-color:rgba(179,136,255,.4)}.bigcard.c-purple .bc-value{color:var(--purple);text-shadow:var(--glow-purple)}.bigcard.c-purple::after{background:var(--purple);box-shadow:var(--glow-purple)}
+.bigcard.c-mint{border-color:rgba(0,229,160,.4)}.bigcard.c-mint .bc-value{color:var(--mint);text-shadow:var(--glow-mint)}.bigcard.c-mint::after{background:var(--mint);box-shadow:var(--glow-mint)}
+.bigcard.c-red{border-color:rgba(255,68,102,.4)}.bigcard.c-red .bc-value{color:var(--red);text-shadow:var(--glow-red)}.bigcard.c-red::after{background:var(--red);box-shadow:var(--glow-red)}
+
+/* === LARGE CALLOUT === */
+.bigcall{
+    position:absolute;background:var(--bg-card);backdrop-filter:blur(14px);
+    border:2.5px solid;border-radius:16px;padding:30px 36px;max-width:440px;
+}
+.bigcall::before{content:'';position:absolute;top:-7px;right:20px;width:12px;height:12px;border-radius:3px}
+.bigcall .bl-title{font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.bigcall .bl-text{font-size:18px;line-height:1.5;color:rgba(240,240,245,.78)}
+
+.bigcall.c-cyan{border-color:rgba(0,229,255,.3)}.bigcall.c-cyan::before{background:var(--cyan);box-shadow:var(--glow-cyan)}.bigcall.c-cyan .bl-title{color:var(--cyan)}
+.bigcall.c-gold{border-color:rgba(255,215,0,.3)}.bigcall.c-gold::before{background:var(--gold);box-shadow:var(--glow-gold)}.bigcall.c-gold .bl-title{color:var(--gold)}
+.bigcall.c-purple{border-color:rgba(179,136,255,.3)}.bigcall.c-purple::before{background:var(--purple);box-shadow:var(--glow-purple)}.bigcall.c-purple .bl-title{color:var(--purple)}
+.bigcall.c-mint{border-color:rgba(0,229,160,.3)}.bigcall.c-mint::before{background:var(--mint);box-shadow:var(--glow-mint)}.bigcall.c-mint .bl-title{color:var(--mint)}
+.bigcall.c-red{border-color:rgba(255,68,102,.3)}.bigcall.c-red::before{background:var(--red);box-shadow:var(--glow-red)}.bigcall.c-red .bl-title{color:var(--red)}
+
+/* Title text */
+.ftitle{position:absolute;font-family:'Bebas Neue',sans-serif;letter-spacing:4px}
+
+/* === TABLE === */
+.ntable{width:100%;border-collapse:separate;border-spacing:0 8px}
+.ntable thead th{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--cyan);padding:14px 22px;text-align:left;border-bottom:2px solid rgba(0,229,255,.2)}
+.ntable tbody tr{background:var(--bg-card)}
+.ntable tbody td{padding:18px 22px;font-size:16px;font-weight:500;border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)}
+.ntable tbody td:first-child{border-left:1px solid rgba(255,255,255,.04);border-radius:10px 0 0 10px}
+.ntable tbody td:last-child{border-right:1px solid rgba(255,255,255,.04);border-radius:0 10px 10px 0}
+.hl-c{color:var(--cyan);font-weight:700}.hl-g{color:var(--gold);font-weight:700}.hl-m{color:var(--mint);font-weight:700}.hl-r{color:var(--red);font-weight:700}.hl-p{color:var(--purple);font-weight:700}
+
+/* === QUOTE === */
+.qt{font-size:34px;font-weight:700;font-style:italic;line-height:1.4;text-align:center;max-width:900px}
+.qm{font-family:'Bebas Neue',sans-serif;font-size:90px;line-height:.5;text-align:center}
+
+/* === VS LAYOUT === */
+.vs-row{display:flex;align-items:center;gap:48px}
+.vs-divider{display:flex;flex-direction:column;align-items:center;gap:8px}
+.vs-divider .line{width:2px;height:60px;background:linear-gradient(180deg,transparent,var(--muted),transparent)}
+.vs-divider .vs{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--muted);letter-spacing:3px}
+
+/* === BIG INLINE CARD (not absolute) === */
+.icard{
+    background:var(--bg-card);border:2.5px solid;border-radius:20px;
+    padding:44px 56px;text-align:center;min-width:360px;max-width:460px;position:relative;
+}
+.icard .ic-label{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:3px;margin-bottom:12px;opacity:.85}
+.icard .ic-value{font-family:'Bebas Neue',sans-serif;font-size:96px;line-height:1}
+.icard .ic-sub{font-size:17px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;opacity:.6;margin-top:8px}
+.icard::after{content:'';position:absolute;width:12px;height:12px;border-radius:3px;animation:orbitDot 8s linear infinite}
+.icard.c-red{border-color:rgba(255,68,102,.4)}.icard.c-red .ic-value{color:var(--red);text-shadow:var(--glow-red)}.icard.c-red::after{background:var(--red);box-shadow:var(--glow-red)}
+.icard.c-gold{border-color:rgba(255,215,0,.4)}.icard.c-gold .ic-value{color:var(--gold);text-shadow:var(--glow-gold)}.icard.c-gold::after{background:var(--gold);box-shadow:var(--glow-gold)}
+.icard.c-cyan{border-color:rgba(0,229,255,.4)}.icard.c-cyan .ic-value{color:var(--cyan);text-shadow:var(--glow-cyan)}.icard.c-cyan::after{background:var(--cyan);box-shadow:var(--glow-cyan)}
+.icard.c-purple{border-color:rgba(179,136,255,.4)}.icard.c-purple .ic-value{color:var(--purple);text-shadow:var(--glow-purple)}.icard.c-purple::after{background:var(--purple);box-shadow:var(--glow-purple)}
+.icard.c-mint{border-color:rgba(0,229,160,.4)}.icard.c-mint .ic-value{color:var(--mint);text-shadow:var(--glow-mint)}.icard.c-mint::after{background:var(--mint);box-shadow:var(--glow-mint)}
+
+/* === FLOW ARROW === */
+.flow-arrow{font-family:'Bebas Neue',sans-serif;font-size:48px;color:var(--muted);opacity:.4}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>Why Gold & Silver Are Falling, Despite War</h1>
+    <p>Full Storyboard &mdash; Visual Frames for Video Production</p>
+</div>
+
+<div class="gallery">
+
+<!-- ============================================================ -->
+<!-- FRAME 1: INTRO — FULL SCREEN -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 1 — Intro: The Contradiction</div>
+<div class="frame">
+    <div class="fs" style="flex-direction:column;gap:24px">
+        <div class="anim-up" style="font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:6px;color:var(--muted)">Despite War & Uncertainty</div>
+        <div class="anim-up d1" style="font-family:'Bebas Neue',sans-serif;font-size:130px;line-height:1;letter-spacing:6px">
+            <span style="color:var(--gold);text-shadow:var(--glow-gold)">Gold</span>
+            <span style="color:var(--muted);font-size:80px;margin:0 20px">&</span>
+            <span style="color:var(--white);text-shadow:0 0 20px rgba(200,200,220,.3)">Silver</span>
+        </div>
+        <div class="anim-up d2" style="font-family:'Bebas Neue',sans-serif;font-size:88px;color:var(--red);text-shadow:var(--glow-red);letter-spacing:6px">Are Falling</div>
+        <div class="anim-up d3" style="font-size:18px;color:var(--muted);letter-spacing:2px;margin-top:12px">What changed? Why is history not repeating?</div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 2: HISTORICAL PATTERN — FULL SCREEN TABLE -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 2 — Gold During Past Crises</div>
+<div class="frame">
+    <div class="fs" style="flex-direction:column;gap:32px">
+        <div class="anim-up" style="font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;text-align:center">Gold Has Always Risen During Crisis</div>
+        <table class="ntable anim-up d1">
+            <thead><tr><th>Period</th><th>Event</th><th>Gold Movement</th></tr></thead>
+            <tbody>
+                <tr class="anim-up d1"><td>1965–1975</td><td>Vietnam War</td><td class="hl-m">$35 &rarr; $180 &nbsp; (+414%)</td></tr>
+                <tr class="anim-up d2"><td>1990–1991</td><td>Gulf War</td><td class="hl-m">+15%</td></tr>
+                <tr class="anim-up d3"><td>2003</td><td>Iraq War</td><td class="hl-m">+19%</td></tr>
+                <tr class="anim-up d4"><td>2008–2011</td><td>Financial Crisis</td><td class="hl-g">$700 &rarr; $1,900 &nbsp; (+171%)</td></tr>
+                <tr class="anim-up d5"><td>2020</td><td>COVID-19</td><td class="hl-g">Spiked above $2,000</td></tr>
+                <tr class="anim-up d6"><td style="color:var(--red);font-weight:700">2025–26</td><td style="color:var(--red);font-weight:700">West Asia Tensions</td><td class="hl-r">Falling &darr;</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 3: THE FALL — WITH ANCHOR -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 3 — The Sharp Correction</div>
+<div class="frame">
+    <img class="anchor" src="aparna.png" alt="Anchor">
+    <div class="overlay">
+        <div class="ftitle anim-up" style="top:60px;left:50%;transform:translateX(-50%);font-size:52px;color:var(--red);text-shadow:var(--glow-red)">Instead of Rising, Both Corrected</div>
+
+        <div class="bigcard c-red anim-left d2" style="top:240px;left:80px">
+            <div class="bc-label">Gold</div>
+            <div class="bc-value anim-glow">-20%</div>
+            <div class="bc-sub">Since West Asia Conflict</div>
+        </div>
+
+        <div class="bigcard c-red anim-right d3" style="top:240px;right:80px">
+            <div class="bc-label">Silver</div>
+            <div class="bc-value anim-glow">-35%</div>
+            <div class="bc-sub">Dropped Within Weeks</div>
+        </div>
+
+        <div class="bigcall c-gold anim-up d5" style="bottom:100px;left:50%;transform:translateX(-50%);text-align:center;max-width:500px">
+            <div class="bl-title">The Contradiction</div>
+            <div class="bl-text">Rising conflict, rising oil, rising inflation risk — but gold &amp; silver are falling</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 4: CRUDE OIL — WITH ANCHOR -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 4 — Crude Oil Surge</div>
+<div class="frame">
+    <img class="anchor" src="aparna.png" alt="Anchor">
+    <div class="overlay">
+        <div class="ftitle anim-up" style="top:60px;left:50%;transform:translateX(-50%);font-size:48px;color:var(--orange);text-shadow:0 0 24px rgba(255,136,68,.5)">Crude Oil Is Surging</div>
+
+        <div class="bigcard c-gold anim-left d1" style="top:220px;left:80px">
+            <div class="bc-label">Crude Oil</div>
+            <div class="bc-value anim-float" style="font-size:64px">$100+</div>
+            <div class="bc-sub">Per Barrel</div>
+        </div>
+
+        <div class="bigcard c-red anim-right d2" style="top:220px;right:80px">
+            <div class="bc-label">Indian Crude Basket</div>
+            <div class="bc-value anim-float" style="font-size:64px">$147</div>
+            <div class="bc-sub">Per Barrel</div>
+        </div>
+
+        <div class="bigcall c-red anim-up d4" style="bottom:120px;left:80px;max-width:360px">
+            <div class="bl-title">Inflation Pressure</div>
+            <div class="bl-text">Higher crude &rarr; higher fuel costs &rarr; higher transport &rarr; spreads across the economy</div>
+        </div>
+
+        <div class="bigcall c-purple anim-up d5" style="bottom:120px;right:80px;max-width:360px">
+            <div class="bl-title">Perfect Setup?</div>
+            <div class="bl-text">Everything looks aligned for gold to rise — but price action tells a different story</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 5: DOLLAR REASON — FULL SCREEN -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 5 — The Dollar Shift</div>
+<div class="frame">
+    <div class="fs" style="flex-direction:column;gap:48px">
+        <div class="anim-up" style="font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;text-align:center">Money Is Moving to the Dollar, Not Gold</div>
+
+        <div class="vs-row anim-up d1">
+            <div class="icard c-gold anim-float">
+                <div class="ic-label">Gold</div>
+                <div class="ic-value" style="font-size:56px">Falling</div>
+                <div class="ic-sub">Traditional Safe Haven</div>
+            </div>
+
+            <div class="vs-divider">
+                <div class="line"></div>
+                <div class="vs">VS</div>
+                <div class="line"></div>
+            </div>
+
+            <div class="icard c-cyan anim-float" style="animation-delay:.5s">
+                <div class="ic-label">US Dollar Index</div>
+                <div class="ic-value">99-100</div>
+                <div class="ic-sub">Holding Strong</div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:32px;justify-content:center" class="anim-up d3">
+            <div class="bigcall c-gold" style="position:static;max-width:400px;text-align:center">
+                <div class="bl-title">Inverse Relationship</div>
+                <div class="bl-text">Gold &amp; Dollar move in opposite directions. When Dollar strengthens, gold becomes expensive globally</div>
+            </div>
+            <div class="bigcall c-cyan" style="position:static;max-width:400px;text-align:center">
+                <div class="bl-title">Preference Shift</div>
+                <div class="bl-text">Investors choosing Dollar more aggressively than gold — it's liquid, flexible &amp; widely accepted</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 6: RUPEE IMPACT — WITH ANCHOR -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 6 — Currency Impact on Gold Price</div>
+<div class="frame">
+    <img class="anchor" src="aparna.png" alt="Anchor">
+    <div class="overlay">
+        <div class="ftitle anim-up" style="top:50px;left:50%;transform:translateX(-50%);font-size:44px;color:var(--gold);text-shadow:var(--glow-gold)">Same Gold. Higher Price For You.</div>
+
+        <div class="bigcard c-cyan anim-left d1" style="top:200px;left:80px">
+            <div class="bc-label">Rupee at 80/$</div>
+            <div class="bc-value" style="font-size:56px">&#8377;4 Lakh</div>
+            <div class="bc-sub">Per Ounce of Gold</div>
+        </div>
+
+        <div class="bigcard c-red anim-right d2" style="top:200px;right:80px">
+            <div class="bc-label">Rupee at 90/$</div>
+            <div class="bc-value" style="font-size:56px">&#8377;4.5 Lakh</div>
+            <div class="bc-sub">Per Ounce of Gold</div>
+        </div>
+
+        <div class="bigcall c-gold anim-up d4" style="bottom:100px;left:50%;transform:translateX(-50%);text-align:center;max-width:520px">
+            <div class="bl-title">Gold Price = $5,000 / oz (unchanged)</div>
+            <div class="bl-text">Weaker rupee = gold costs more in India = less buying = global demand slows down</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 7: FED RATE CUTS — FULL SCREEN TABLE -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 7 — Fed Rate Cuts vs Gold Rallies</div>
+<div class="frame">
+    <div class="fs" style="flex-direction:column;gap:36px">
+        <div class="anim-up" style="font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;text-align:center">Gold Rallies After Rate Cuts — Not During Fear</div>
+        <table class="ntable anim-up d1">
+            <thead><tr><th>Period</th><th>Fed Rate Cut</th><th>Context</th><th>Gold (Next 24 Mo)</th></tr></thead>
+            <tbody>
+                <tr class="anim-up d2"><td>2000</td><td style="color:var(--cyan)">6.5% &rarr; Cuts begin</td><td>Dot-com crash</td><td class="hl-m">+31% sustained rally</td></tr>
+                <tr class="anim-up d3"><td>2007</td><td style="color:var(--cyan)">5.25% &rarr; Cuts begin</td><td>Financial crisis</td><td class="hl-g">+39% strong uptrend</td></tr>
+                <tr class="anim-up d4"><td>2019</td><td style="color:var(--cyan)">2.4% &rarr; Cuts begin</td><td>Trade tensions</td><td class="hl-m">+26% steady rise</td></tr>
+                <tr class="anim-up d5"><td style="color:var(--red);font-weight:700">2025–26</td><td style="color:var(--red);font-weight:700">Rates held steady</td><td style="color:var(--red)">Inflation not cooled</td><td class="hl-r">Key trigger missing</td></tr>
+            </tbody>
+        </table>
+        <div class="anim-up d6" style="text-align:center;max-width:700px;margin:0 auto;font-size:16px;color:var(--muted);line-height:1.6">The environment that usually drives a strong gold rally — a clear rate-cut cycle — is still missing</div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 8: OPPORTUNITY COST — FULL SCREEN -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 8 — Opportunity Cost: Gold vs Bonds</div>
+<div class="frame">
+    <div class="fs" style="flex-direction:column;gap:48px">
+        <div class="anim-up" style="font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;text-align:center">Why Hold Gold When Bonds Pay You?</div>
+
+        <div class="vs-row anim-up d1">
+            <div class="icard c-gold anim-float">
+                <div class="ic-label">Gold Yield</div>
+                <div class="ic-value">0%</div>
+                <div class="ic-sub">Non-Yielding Asset</div>
+            </div>
+
+            <div class="vs-divider">
+                <div class="line"></div>
+                <div class="vs">VS</div>
+                <div class="line"></div>
+            </div>
+
+            <div class="icard c-mint anim-float" style="animation-delay:.5s">
+                <div class="ic-label">US 10Y Bond</div>
+                <div class="ic-value" style="font-size:72px">4.3%</div>
+                <div class="ic-sub">Steady Income + Safety</div>
+            </div>
+        </div>
+
+        <div class="anim-up d3" style="text-align:center;max-width:750px;margin:0 auto">
+            <div style="font-size:22px;font-weight:700;color:var(--gold);margin-bottom:8px">Investors are getting paid to stay safe</div>
+            <div style="font-size:16px;color:var(--muted);line-height:1.6">When money flows towards yield, gold — which offers none — quietly takes a back seat</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 9: CENTRAL BANKS — WITH ANCHOR -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 9 — Central Banks: From Buyers to Sellers</div>
+<div class="frame">
+    <img class="anchor" src="aparna.png" alt="Anchor">
+    <div class="overlay">
+        <div class="ftitle anim-up" style="top:50px;left:50%;transform:translateX(-50%);font-size:44px;color:var(--cyan);text-shadow:var(--glow-cyan);text-align:center;width:100%">Central Banks: The Big Shift</div>
+
+        <div class="bigcard c-mint anim-left d1" style="top:200px;left:80px">
+            <div class="bc-label">Before</div>
+            <div class="bc-value" style="font-size:48px">Buying</div>
+            <div class="bc-sub">Absorbing Supply</div>
+        </div>
+
+        <div class="bigcard c-red anim-right d2" style="top:200px;right:80px">
+            <div class="bc-label">Now</div>
+            <div class="bc-value" style="font-size:48px">Selling</div>
+            <div class="bc-sub">Adding Supply</div>
+        </div>
+
+        <div class="bigcall c-gold anim-up d4" style="bottom:160px;left:80px;max-width:360px">
+            <div class="bl-title">Why?</div>
+            <div class="bl-text">Middle East economies need cash — oil revenue hit, conflict costs rising, gold becomes a liquidity source</div>
+        </div>
+
+        <div class="bigcall c-purple anim-up d5" style="bottom:160px;right:80px;max-width:360px">
+            <div class="bl-title">Impact</div>
+            <div class="bl-text">Same entities that were buying are now selling — it changes the entire market structure</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 10: LIQUIDITY vs FEAR — WITH ANCHOR -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 10 — It's Not Fear, It's Liquidity</div>
+<div class="frame">
+    <img class="anchor" src="aparna.png" alt="Anchor">
+    <div class="overlay">
+        <div class="ftitle anim-up" style="top:60px;left:50%;transform:translateX(-50%);font-size:48px;color:var(--red);text-shadow:var(--glow-red);text-align:center;width:100%">It's Not Fear Driving the Market</div>
+        <div class="ftitle anim-up d1" style="top:130px;left:50%;transform:translateX(-50%);font-size:72px;color:var(--gold);text-shadow:var(--glow-gold);text-align:center;width:100%">It's The Need For Cash</div>
+
+        <div class="bigcall c-red anim-left d2" style="top:320px;left:80px;max-width:380px">
+            <div class="bl-title">Equity Falls &rarr; Margin Calls</div>
+            <div class="bl-text">Investors sell gold — it's liquid, easy to exit, and sitting on profits from earlier rallies</div>
+        </div>
+
+        <div class="bigcall c-cyan anim-right d3" style="top:320px;right:80px;max-width:380px">
+            <div class="bl-title">Capital Reallocation</div>
+            <div class="bl-text">Falling equities look like opportunity — some money shifts from gold into stocks</div>
+        </div>
+
+        <div class="bigcall c-purple anim-up d5" style="bottom:100px;left:50%;transform:translateX(-50%);text-align:center;max-width:560px">
+            <div class="bl-title">Two Forces Together</div>
+            <div class="bl-text">Forced selling + deliberate reallocation = gold under pressure, even when it "should" be doing well</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 11: 1983 PARALLEL — FULL SCREEN -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 11 — History Repeating: 1983 Parallel</div>
+<div class="frame">
+    <div class="fs" style="flex-direction:column;gap:40px">
+        <div class="anim-up" style="font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;text-align:center">Is History Quietly Repeating?</div>
+        <div class="vs-row anim-up d1" style="gap:64px">
+            <div class="icard c-gold" style="min-width:360px">
+                <div class="ic-label">1983</div>
+                <div class="ic-value" style="font-size:56px">Oil Revenue &darr;</div>
+                <div class="ic-sub">Middle East sold gold reserves</div>
+                <div style="font-size:14px;color:var(--muted);margin-top:12px;line-height:1.5">Sharp fall in gold prices within days</div>
+            </div>
+
+            <div class="flow-arrow anim-pop d2">&harr;</div>
+
+            <div class="icard c-red" style="min-width:360px">
+                <div class="ic-label">2025–26</div>
+                <div class="ic-value" style="font-size:56px">Oil Revenue &darr;</div>
+                <div class="ic-sub">Economies under pressure again</div>
+                <div style="font-size:14px;color:var(--muted);margin-top:12px;line-height:1.5">Same setup — forced selling for liquidity</div>
+            </div>
+        </div>
+
+        <div class="anim-up d4" style="text-align:center;max-width:700px;margin:0 auto">
+            <div style="font-size:20px;font-weight:700;color:var(--gold);margin-bottom:8px">This is a liquidity-driven market, not fear-driven</div>
+            <div style="font-size:15px;color:var(--muted);line-height:1.6">When large players need cash, they sell gold — and that selling overpowers safe-haven demand</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 12: WHAT TO DO — WITH ANCHOR -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 12 — What Should You Do Now?</div>
+<div class="frame">
+    <img class="anchor" src="aparna.png" alt="Anchor">
+    <div class="overlay">
+        <div class="ftitle anim-up" style="top:50px;left:50%;transform:translateX(-50%);font-size:48px;color:var(--mint);text-shadow:var(--glow-mint);text-align:center;width:100%">What Should You Do?</div>
+
+        <div class="bigcall c-mint anim-left d1" style="top:200px;left:80px;max-width:380px">
+            <div class="bl-title">Don't Panic Sell</div>
+            <div class="bl-text">This is a liquidity-driven phase, not a structural breakdown. Core drivers are still intact.</div>
+        </div>
+
+        <div class="bigcall c-cyan anim-right d2" style="top:200px;right:80px;max-width:380px">
+            <div class="bl-title">Build Gradually</div>
+            <div class="bl-text">Don't try to catch the exact bottom. Build positions patiently in volatile phases.</div>
+        </div>
+
+        <div class="bigcall c-gold anim-left d3" style="top:460px;left:80px;max-width:380px">
+            <div class="bl-title">Stay Invested</div>
+            <div class="bl-text">If you already hold gold, avoid exiting completely. Prices often overshoot on the downside.</div>
+        </div>
+
+        <div class="bigcard c-gold anim-right d4" style="top:440px;right:80px">
+            <div class="bc-label">Long-Term Target</div>
+            <div class="bc-value anim-glow" style="font-size:64px">$10,000</div>
+            <div class="bc-sub">Gold by End of Decade</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FRAME 13: KEY TAKEAWAY — FULL SCREEN -->
+<!-- ============================================================ -->
+<div class="frame-label">Frame 13 — Key Takeaway</div>
+<div class="frame">
+    <div class="fs" style="flex-direction:column;gap:40px">
+        <div class="qm anim-up" style="color:rgba(255,215,0,.15)">&ldquo;</div>
+        <div class="qt anim-up d1" style="color:var(--gold);text-shadow:0 0 30px rgba(255,215,0,.3)">This is not the end of the gold &amp; silver story. This is just a phase where the market is resetting before the next move begins.</div>
+
+        <div style="display:flex;gap:36px;margin-top:16px" class="anim-up d3">
+            <div class="bigcall c-red" style="position:static;text-align:center;max-width:320px">
+                <div class="bl-title">Short-Term</div>
+                <div class="bl-text">Liquidity stress, dollar strength &amp; positioning unwind</div>
+            </div>
+            <div class="bigcall c-mint" style="position:static;text-align:center;max-width:320px">
+                <div class="bl-title">Long-Term</div>
+                <div class="bl-text">Core drivers intact — rate cuts will eventually trigger the next leg</div>
+            </div>
+            <div class="bigcall c-gold" style="position:static;text-align:center;max-width:320px">
+                <div class="bl-title">Your Move</div>
+                <div class="bl-text">Stay invested, build gradually, don't chase the bottom</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div><!-- /gallery -->
+
+<script>
+function scaleFrames(){
+    const vw=document.documentElement.clientWidth;
+    const scale=Math.min(1,(vw-64)/1920);
+    document.documentElement.style.setProperty('--frame-scale',scale.toFixed(4));
+}
+scaleFrames();
+window.addEventListener('resize',scaleFrames);
+
+// Scroll-triggered animations
+const observer=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+        if(e.isIntersecting){
+            e.target.querySelectorAll('[class*="anim-"]').forEach(el=>{
+                el.style.animationPlayState='running';
+            });
+        }
+    });
+},{threshold:0.2});
+document.querySelectorAll('.frame').forEach(f=>{
+    f.querySelectorAll('[class*="anim-"]').forEach(el=>{
+        el.style.animationPlayState='paused';
+    });
+    observer.observe(f);
+});
+</script>
+
+</body>
+</html>

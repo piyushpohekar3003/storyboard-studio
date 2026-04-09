@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}New Project — Storyboard Studio{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <h2>New Project</h2>
+    <p>Transform research into scripts and storyboards</p>
+</div>
+
+<form id="projectForm">
+    <!-- Research Input -->
+    <div class="glass card">
+        <p class="section-label">Research Input</p>
+
+        <div class="option-group" id="inputTypeGroup">
+            <label class="option-pill selected" onclick="selectPill(this, 'inputTypeGroup')">
+                <input type="radio" name="input_type" value="url" checked onchange="toggleInput()">
+                Google Doc URL
+            </label>
+            <label class="option-pill" onclick="selectPill(this, 'inputTypeGroup')">
+                <input type="radio" name="input_type" value="text" onchange="toggleInput()">
+                Paste Text
+            </label>
+            <label class="option-pill" onclick="selectPill(this, 'inputTypeGroup')">
+                <input type="radio" name="input_type" value="file" onchange="toggleInput()">
+                Upload File
+            </label>
+        </div>
+
+        <div id="url_input">
+            <input type="url" class="glass-input" name="doc_url" placeholder="https://docs.google.com/document/d/..." id="docUrl">
+        </div>
+        <div id="text_input" style="display:none">
+            <textarea class="glass-input" name="research_text" rows="8" placeholder="Paste your research document here..." id="researchText"></textarea>
+        </div>
+        <div id="file_input" style="display:none">
+            <input type="file" class="glass-input" name="research_file" id="researchFile" accept=".txt,.doc,.docx,.pdf">
+        </div>
+    </div>
+
+    <!-- Topic -->
+    <div class="glass card">
+        <p class="section-label">Video Topic</p>
+        <input type="text" class="glass-input" id="topic" name="topic" placeholder="e.g., Gold vs Silver Investment" required>
+    </div>
+
+    <!-- Channel Selection -->
+    <div class="glass card">
+        <p class="section-label">Select Channel(s)</p>
+        {% for ch in channels %}
+        <label class="channel-card" onclick="toggleChannel(this)">
+            <input type="checkbox" name="channels" value="{{ ch.slug }}">
+            <div class="channel-info">
+                <h4>{{ ch.name }}</h4>
+                <p>{{ ch.description }}</p>
+            </div>
+        </label>
+        {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary" id="startBtn" style="width:100%;margin-top:0.5rem;padding:1rem;">
+        Generate Script & Storyboard
+    </button>
+</form>
+
+<script>
+function toggleInput() {
+    const type = document.querySelector('input[name="input_type"]:checked').value;
+    document.getElementById('url_input').style.display = type === 'url' ? '' : 'none';
+    document.getElementById('text_input').style.display = type === 'text' ? '' : 'none';
+    document.getElementById('file_input').style.display = type === 'file' ? '' : 'none';
+}
+
+function selectPill(el, groupId) {
+    document.querySelectorAll('#' + groupId + ' .option-pill').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+function toggleChannel(el) {
+    const cb = el.querySelector('input[type="checkbox"]');
+    cb.checked = !cb.checked;
+    el.classList.toggle('selected', cb.checked);
+}
+
+document.getElementById('projectForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const inputType = document.querySelector('input[name="input_type"]:checked').value;
+    const topic = document.getElementById('topic').value;
+    const channels = Array.from(document.querySelectorAll('input[name="channels"]:checked')).map(cb => cb.value);
+
+    if (channels.length === 0) {
+        alert('Please select at least one channel.');
+        return;
+    }
+
+    let researchText = '';
+    let sourceUrl = '';
+
+    if (inputType === 'url') {
+        sourceUrl = document.getElementById('docUrl').value;
+        if (!sourceUrl) { alert('Please enter a Google Doc URL.'); return; }
+    } else if (inputType === 'text') {
+        researchText = document.getElementById('researchText').value;
+        if (!researchText) { alert('Please paste your research text.'); return; }
+    } else if (inputType === 'file') {
+        const file = document.getElementById('researchFile').files[0];
+        if (!file) { alert('Please select a file.'); return; }
+        researchText = await file.text();
+    }
+
+    const formData = new URLSearchParams();
+    formData.append('topic', topic);
+    formData.append('channels', JSON.stringify(channels));
+    formData.append('research_text', researchText);
+    formData.append('source_url', sourceUrl);
+
+    const btn = document.getElementById('startBtn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    const resp = await fetch('/create', { method: 'POST', body: formData });
+    const data = await resp.json();
+
+    btn.classList.remove('loading');
+    btn.disabled = false;
+
+    if (data.redirect) {
+        window.location.href = data.redirect;
+    } else if (data.error) {
+        alert(data.error);
+    }
+});
+</script>
+{% endblock %}

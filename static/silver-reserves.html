@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Silver Reserves — Country-wise</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0a0a0f;--bg-card:rgba(15,15,25,0.88);
+--cyan:#00e5ff;--gold:#ffd700;--purple:#b388ff;--mint:#00e5a0;--red:#ff4466;--blue:#4488ff;--orange:#ff8844;
+--white:#f0f0f5;--muted:#888899;
+}
+body{background:#060609;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Inter',sans-serif;color:var(--white)}
+
+.frame{
+    width:1080px;height:1080px;
+    background:var(--bg);
+    position:relative;overflow:hidden;
+    border-radius:10px;
+}
+/* Warm corner glow */
+.frame::before{
+    content:'';position:absolute;inset:0;
+    background:
+        radial-gradient(ellipse at 0% 100%,rgba(180,100,30,.18) 0%,transparent 50%),
+        radial-gradient(ellipse at 100% 0%,rgba(180,100,30,.08) 0%,transparent 40%),
+        radial-gradient(ellipse at 100% 100%,rgba(180,100,30,.14) 0%,transparent 45%),
+        radial-gradient(ellipse at 50% 50%,rgba(179,136,255,.03) 0%,transparent 60%);
+    pointer-events:none;z-index:0;
+}
+/* Hex grid */
+.frame::after{
+    content:'';position:absolute;inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpath d='M30 0l30 15v22l-30 15L0 37V15z' fill='none' stroke='rgba(180,100,30,0.05)' stroke-width='1'/%3E%3C/svg%3E");
+    background-size:60px 52px;opacity:.5;pointer-events:none;z-index:0;
+}
+
+.content{position:relative;z-index:1;width:100%;height:100%;padding:56px 60px 48px;display:flex;flex-direction:column}
+
+/* === HEADER === */
+.header{text-align:center;margin-bottom:12px}
+.header .super{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:4px;color:var(--muted)}
+.header h1{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:4px;color:var(--purple);text-shadow:0 0 20px rgba(179,136,255,.5),0 0 40px rgba(179,136,255,.2);margin-top:4px}
+.header .sub{font-size:11px;color:var(--muted);margin-top:6px;letter-spacing:1px}
+
+/* === TOTAL BADGE === */
+.total-badge{
+    display:flex;align-items:center;justify-content:center;gap:16px;
+    margin:16px auto 20px;
+    background:var(--bg-card);border:1.5px solid rgba(255,215,0,.3);border-radius:12px;
+    padding:12px 32px;
+}
+.total-badge .tb-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--muted)}
+.total-badge .tb-value{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--gold);text-shadow:0 0 20px rgba(255,215,0,.5),0 0 40px rgba(255,215,0,.2)}
+.total-badge .tb-unit{font-size:12px;font-weight:600;color:var(--gold);opacity:.7;text-transform:uppercase;letter-spacing:1px}
+
+/* === BAR ROWS === */
+.bars{flex:1;display:flex;flex-direction:column;justify-content:center;gap:11px}
+.bar-row{display:flex;align-items:center;gap:14px}
+.bar-rank{
+    width:28px;font-family:'Bebas Neue',sans-serif;font-size:18px;
+    color:var(--muted);text-align:center;flex-shrink:0;
+}
+.bar-country{
+    width:110px;font-size:12px;font-weight:700;text-align:right;
+    flex-shrink:0;letter-spacing:.5px;
+}
+.bar-track{
+    flex:1;height:30px;background:rgba(255,255,255,.03);
+    border-radius:6px;overflow:hidden;position:relative;
+}
+.bar-fill{
+    height:100%;border-radius:6px;
+    display:flex;align-items:center;
+    padding:0 12px;justify-content:flex-end;
+    min-width:40px;
+    transition:width .6s ease;
+}
+.bar-fill-val{
+    font-family:'Bebas Neue',sans-serif;font-size:14px;
+    color:rgba(0,0,0,.9);font-weight:700;white-space:nowrap;
+}
+.bar-pct{
+    width:46px;font-family:'Bebas Neue',sans-serif;font-size:18px;
+    text-align:right;flex-shrink:0;
+}
+
+/* Bar colors */
+.b1 .bar-fill{background:linear-gradient(90deg,rgba(179,136,255,.2),#b388ff);box-shadow:0 0 16px rgba(179,136,255,.4)}
+.b1 .bar-pct,.b1 .bar-country{color:#b388ff}
+.b2 .bar-fill{background:linear-gradient(90deg,rgba(0,229,255,.2),#00e5ff);box-shadow:0 0 16px rgba(0,229,255,.4)}
+.b2 .bar-pct,.b2 .bar-country{color:#00e5ff}
+.b3 .bar-fill{background:linear-gradient(90deg,rgba(255,68,102,.2),#ff4466);box-shadow:0 0 16px rgba(255,68,102,.4)}
+.b3 .bar-pct,.b3 .bar-country{color:#ff4466}
+.b4 .bar-fill{background:linear-gradient(90deg,rgba(255,215,0,.2),#ffd700);box-shadow:0 0 16px rgba(255,215,0,.4)}
+.b4 .bar-pct,.b4 .bar-country{color:#ffd700}
+.b5 .bar-fill{background:linear-gradient(90deg,rgba(0,229,160,.2),#00e5a0);box-shadow:0 0 16px rgba(0,229,160,.4)}
+.b5 .bar-pct,.b5 .bar-country{color:#00e5a0}
+.b6 .bar-fill{background:linear-gradient(90deg,rgba(255,136,68,.2),#ff8844);box-shadow:0 0 16px rgba(255,136,68,.4)}
+.b6 .bar-pct,.b6 .bar-country{color:#ff8844}
+.b7 .bar-fill{background:linear-gradient(90deg,rgba(68,136,255,.2),#4488ff);box-shadow:0 0 16px rgba(68,136,255,.4)}
+.b7 .bar-pct,.b7 .bar-country{color:#4488ff}
+/* Dim rows for smaller values */
+.b-dim .bar-fill{background:linear-gradient(90deg,rgba(136,136,153,.15),rgba(136,136,153,.5));box-shadow:none}
+.b-dim .bar-pct,.b-dim .bar-country{color:var(--muted)}
+
+/* === SOURCE === */
+.source{
+    text-align:center;margin-top:16px;
+    font-size:10px;color:rgba(136,136,153,.6);letter-spacing:1px;
+}
+.source span{color:rgba(136,136,153,.8)}
+</style>
+</head>
+<body>
+
+<div class="frame">
+<div class="content">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="super">Country-Wise</div>
+        <h1>Silver Reserves 2023</h1>
+        <div class="sub">Top 11 Countries by Proven Silver Reserves</div>
+    </div>
+
+    <!-- TOTAL -->
+    <div class="total-badge">
+        <span class="tb-label">Total Global Reserves</span>
+        <span class="tb-value">5,53,500</span>
+        <span class="tb-unit">Tonnes</span>
+    </div>
+
+    <!-- BARS -->
+    <div class="bars">
+        <!-- Peru 20% -->
+        <div class="bar-row b1">
+            <div class="bar-rank">1</div>
+            <div class="bar-country">Peru</div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%"><span class="bar-fill-val">1,10,000 T</span></div></div>
+            <div class="bar-pct">20%</div>
+        </div>
+        <!-- Australia 17% -->
+        <div class="bar-row b2">
+            <div class="bar-rank">2</div>
+            <div class="bar-country">Australia</div>
+            <div class="bar-track"><div class="bar-fill" style="width:85%"><span class="bar-fill-val">94,000 T</span></div></div>
+            <div class="bar-pct">17%</div>
+        </div>
+        <!-- Russia 17% -->
+        <div class="bar-row b3">
+            <div class="bar-rank">3</div>
+            <div class="bar-country">Russia</div>
+            <div class="bar-track"><div class="bar-fill" style="width:84%"><span class="bar-fill-val">92,000 T</span></div></div>
+            <div class="bar-pct">17%</div>
+        </div>
+        <!-- China 13% -->
+        <div class="bar-row b4">
+            <div class="bar-rank">4</div>
+            <div class="bar-country">China</div>
+            <div class="bar-track"><div class="bar-fill" style="width:65%"><span class="bar-fill-val">72,000 T</span></div></div>
+            <div class="bar-pct">13%</div>
+        </div>
+        <!-- Poland 11% -->
+        <div class="bar-row b5">
+            <div class="bar-rank">5</div>
+            <div class="bar-country">Poland</div>
+            <div class="bar-track"><div class="bar-fill" style="width:57%"><span class="bar-fill-val">63,000 T</span></div></div>
+            <div class="bar-pct">11%</div>
+        </div>
+        <!-- Mexico 7% -->
+        <div class="bar-row b6">
+            <div class="bar-rank">6</div>
+            <div class="bar-country">Mexico</div>
+            <div class="bar-track"><div class="bar-fill" style="width:34%"><span class="bar-fill-val">37,000 T</span></div></div>
+            <div class="bar-pct">7%</div>
+        </div>
+        <!-- Chile 5% -->
+        <div class="bar-row b7">
+            <div class="bar-rank">7</div>
+            <div class="bar-country">Chile</div>
+            <div class="bar-track"><div class="bar-fill" style="width:24%"><span class="bar-fill-val">26,000 T</span></div></div>
+            <div class="bar-pct">5%</div>
+        </div>
+        <!-- United States 4% -->
+        <div class="bar-row b-dim">
+            <div class="bar-rank">8</div>
+            <div class="bar-country">United States</div>
+            <div class="bar-track"><div class="bar-fill" style="width:21%"><span class="bar-fill-val">23,000 T</span></div></div>
+            <div class="bar-pct">4%</div>
+        </div>
+        <!-- Bolivia 4% -->
+        <div class="bar-row b-dim">
+            <div class="bar-rank">9</div>
+            <div class="bar-country">Bolivia</div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%"><span class="bar-fill-val">22,000 T</span></div></div>
+            <div class="bar-pct">4%</div>
+        </div>
+        <!-- India 1% -->
+        <div class="bar-row b-dim">
+            <div class="bar-rank">10</div>
+            <div class="bar-country">India</div>
+            <div class="bar-track"><div class="bar-fill" style="width:7%"><span class="bar-fill-val" style="color:var(--white)">8,000 T</span></div></div>
+            <div class="bar-pct">1%</div>
+        </div>
+        <!-- Argentina 1% -->
+        <div class="bar-row b-dim">
+            <div class="bar-rank">11</div>
+            <div class="bar-country">Argentina</div>
+            <div class="bar-track"><div class="bar-fill" style="width:6%"><span class="bar-fill-val" style="color:var(--white)">6,500 T</span></div></div>
+            <div class="bar-pct">1%</div>
+        </div>
+    </div>
+
+    <!-- SOURCE -->
+    <div class="source">Source: <span>Mineral Commodity Summaries 2025 — U.S. Geological Survey</span></div>
+
+</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+{% block title %}{{ project.topic }} — Storyboard Studio{% endblock %}
+{% block content %}
+
+<div class="page-header" style="text-align:left;padding:32px 0 24px;">
+    <h2>{{ project.topic }}</h2>
+    <p>{{ channel_name }} · Project #{{ project.id }}</p>
+</div>
+
+<!-- Channel tabs if multi-channel -->
+{% if sibling_ids %}
+<div class="tab-nav">
+    {% for sib in sibling_ids %}
+    <a href="/generate/{{ sib.id }}" class="{{ 'active' if sib.id == project.id else '' }}">{{ sib.channel_name }}</a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Research Preview -->
+<details class="glass-details">
+    <summary>View Research Input</summary>
+    <div class="details-content">
+        <div class="research-preview">{{ project.research_input }}</div>
+    </div>
+</details>
+
+<div class="divider"></div>
+
+<!-- SCRIPT SECTION -->
+<div class="glass card">
+    <div class="section-header" style="margin:0 0 16px;">
+        <div>
+            <p class="section-label">Step 1</p>
+            <h3>Script</h3>
+        </div>
+        <div class="actions" style="display:flex;align-items:center;gap:12px;">
+            <div id="scriptStats" class="script-stats">
+                {% set research_words = project.research_input.split()|length if project.research_input else 0 %}
+                {% set est_min = (research_words * 0.4)|int %}
+                {% set est_max = (research_words * 0.6)|int %}
+                <span style="font-size:11px;color:#86868b;">
+                    Research: <strong style="color:#1d1d1f;">{{ research_words }}</strong> words · Est. script: <strong style="color:#1d1d1f;">{{ est_min }}–{{ est_max }}</strong> words
+                </span>
+            </div>
+            {% if project.generated_script or project.edited_script %}
+            <a href="/export-script/{{ project.id }}" class="btn btn-secondary btn-sm">Export Script</a>
+            {% endif %}
+            <button class="btn btn-primary btn-sm" id="genScriptBtn" onclick="generateScript()">
+                {{ "Regenerate" if project.generated_script else "Generate Script" }}
+            </button>
+        </div>
+    </div>
+
+    <div id="scriptOutput" class="output-area" contenteditable="true">{% if project.generated_script or project.edited_script %}{{ project.generated_script or project.edited_script }}{% else %}<span class="placeholder">Click 'Generate Script' to start...</span>{% endif %}</div>
+
+    <!-- Word count bar -->
+    <div id="scriptWordCount" class="word-count-bar" {% if not project.generated_script and not project.edited_script %}style="display:none"{% endif %}>
+        <span id="wordCountText"></span>
+        <span id="videoDuration"></span>
+    </div>
+
+    <!-- Redo controls -->
+    <div class="redo-panel" id="scriptRedoControls" {% if not project.generated_script %}style="display:none"{% endif %}>
+        <p class="redo-hint">Select text above for targeted edits, or give overall feedback to redo the entire script.</p>
+        <div class="redo-row">
+            <input type="text" class="glass-input" id="scriptFeedback" placeholder="e.g., Make this more data-driven, change tone to casual...">
+            <button class="btn btn-secondary btn-sm" onclick="redoScript('section')">Redo Selection</button>
+            <button class="btn btn-secondary btn-sm" onclick="redoScript('full')">Redo All</button>
+        </div>
+    </div>
+</div>
+
+<!-- STORYBOARD SECTION -->
+<div class="glass card">
+    <div class="section-header" style="margin:0 0 16px;">
+        <div>
+            <p class="section-label">Step 2</p>
+            <h3>Storyboard</h3>
+        </div>
+        <div class="actions">
+            <button class="btn btn-primary btn-sm" id="genStoryBtn" onclick="generateStoryboard()" {% if not project.generated_script %}disabled{% endif %}>
+                {{ "Regenerate" if project.generated_storyboard else "Generate Storyboard" }}
+            </button>
+            {% if project.generated_storyboard %}
+            <a href="/export/{{ project.id }}" class="btn btn-secondary btn-sm">Export DOCX</a>
+            <button class="btn btn-secondary btn-sm" onclick="copyStoryboard()">Copy</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="storyboardOutput" class="output-area storyboard">{% if project.generated_storyboard %}{{ project.generated_storyboard }}{% else %}<span class="placeholder">Generate a script first, then generate the storyboard.</span>{% endif %}</div>
+
+    <!-- Redo controls -->
+    <div class="redo-panel" id="storyRedoControls" {% if not project.generated_storyboard %}style="display:none"{% endif %}>
+        <p class="redo-hint">Give feedback to regenerate the storyboard.</p>
+        <div class="redo-row">
+            <input type="text" class="glass-input" id="storyFeedback" placeholder="e.g., Add more SFX notes, make visuals more data-heavy...">
+            <button class="btn btn-secondary btn-sm" onclick="redoStoryboard('full')">Redo All</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PROJECT_ID = {{ project.id }};
+const CHANNEL_SLUG = "{{ project.channel_slug }}";
+const socket = io();
+
+function clearPlaceholder(el) {
+    const ph = el.querySelector('.placeholder');
+    if (ph) ph.remove();
+}
+
+function updateWordCount() {
+    const text = document.getElementById('scriptOutput').innerText.trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    const minutes = (words / 140).toFixed(1);
+    const bar = document.getElementById('scriptWordCount');
+    bar.style.display = '';
+    document.getElementById('wordCountText').innerHTML = 'Script: <strong>' + words + '</strong> words';
+    document.getElementById('videoDuration').innerHTML = 'Est. video: <strong>~' + minutes + ' min</strong> (at 140 wpm)';
+}
+
+// --- Script Generation ---
+function generateScript() {
+    const btn = document.getElementById('genScriptBtn');
+    const output = document.getElementById('scriptOutput');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    output.innerText = '';
+    clearPlaceholder(output);
+
+    socket.emit('generate_script', { project_id: PROJECT_ID, channel: CHANNEL_SLUG });
+}
+
+socket.on('script_chunk', function(data) {
+    if (data.project_id === PROJECT_ID) {
+        const el = document.getElementById('scriptOutput');
+        clearPlaceholder(el);
+        el.innerText += data.text;
+        el.scrollTop = el.scrollHeight;
+    }
+});
+
+socket.on('script_done', function(data) {
+    if (data.project_id === PROJECT_ID) {
+        const btn = document.getElementById('genScriptBtn');
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        btn.textContent = 'Regenerate';
+
+        document.getElementById('scriptRedoControls').style.display = '';
+        document.getElementById('genStoryBtn').disabled = false;
+        updateWordCount();
+
+        // Add export button if not present
+        const actions = btn.parentElement;
+        if (!actions.querySelector('a[href*="export-script"]')) {
+            const exportBtn = document.createElement('a');
+            exportBtn.href = '/export-script/' + PROJECT_ID;
+            exportBtn.className = 'btn btn-secondary btn-sm';
+            exportBtn.textContent = 'Export Script';
+            actions.insertBefore(exportBtn, btn);
+        }
+    }
+});
+
+// --- Storyboard Generation ---
+let storyboardBuffer = '';
+
+function generateStoryboard() {
+    const btn = document.getElementById('genStoryBtn');
+    const output = document.getElementById('storyboardOutput');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    output.innerHTML = '';
+    storyboardBuffer = '';
+
+    const scriptText = document.getElementById('scriptOutput').innerText;
+    socket.emit('generate_storyboard', {
+        project_id: PROJECT_ID,
+        channel: CHANNEL_SLUG,
+        script_text: scriptText
+    });
+}
+
+socket.on('storyboard_chunk', function(data) {
+    if (data.project_id === PROJECT_ID) {
+        storyboardBuffer += data.text;
+        document.getElementById('storyboardOutput').innerHTML = renderMarkdown(storyboardBuffer);
+        const el = document.getElementById('storyboardOutput');
+        el.scrollTop = el.scrollHeight;
+    }
+});
+
+socket.on('storyboard_done', function(data) {
+    if (data.project_id === PROJECT_ID) {
+        const btn = document.getElementById('genStoryBtn');
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        btn.textContent = 'Regenerate';
+        document.getElementById('storyRedoControls').style.display = '';
+
+        // Show export buttons
+        const actions = btn.parentElement;
+        if (!actions.querySelector('a[href*="export"]')) {
+            const exportBtn = document.createElement('a');
+            exportBtn.href = '/export/' + PROJECT_ID;
+            exportBtn.className = 'btn btn-secondary btn-sm';
+            exportBtn.textContent = 'Export DOCX';
+            actions.appendChild(exportBtn);
+
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'btn btn-secondary btn-sm';
+            copyBtn.textContent = 'Copy';
+            copyBtn.onclick = copyStoryboard;
+            actions.appendChild(copyBtn);
+        }
+
+        storyboardBuffer = '';
+    }
+});
+
+// --- Redo ---
+function redoScript(mode) {
+    const feedback = document.getElementById('scriptFeedback').value;
+    if (!feedback) { alert('Please enter feedback.'); return; }
+
+    const output = document.getElementById('scriptOutput');
+    let selectedText = '';
+    if (mode === 'section') {
+        selectedText = window.getSelection().toString();
+        if (!selectedText) { alert('Please select some text in the script first.'); return; }
+    }
+
+    output.innerText = '';
+    socket.emit('redo_script', {
+        project_id: PROJECT_ID,
+        channel: CHANNEL_SLUG,
+        mode: mode,
+        selected_text: selectedText,
+        feedback: feedback
+    });
+}
+
+socket.on('redo_script_chunk', function(data) {
+    if (data.project_id === PROJECT_ID) {
+        document.getElementById('scriptOutput').innerText += data.text;
+    }
+});
+
+socket.on('redo_script_done', function(data) {
+    if (data.project_id === PROJECT_ID) {
+        document.getElementById('scriptFeedback').value = '';
+        updateWordCount();
+    }
+});
+
+function redoStoryboard(mode) {
+    const feedback = document.getElementById('storyFeedback').value;
+    if (!feedback) { alert('Please enter feedback.'); return; }
+
+    const output = document.getElementById('storyboardOutput');
+    output.innerHTML = '';
+    storyboardBuffer = '';
+
+    socket.emit('redo_storyboard', {
+        project_id: PROJECT_ID,
+        channel: CHANNEL_SLUG,
+        mode: mode,
+        feedback: feedback
+    });
+}
+
+socket.on('redo_storyboard_chunk', function(data) {
+    if (data.project_id === PROJECT_ID) {
+        storyboardBuffer += data.text;
+        document.getElementById('storyboardOutput').innerHTML = renderMarkdown(storyboardBuffer);
+    }
+});
+
+socket.on('redo_storyboard_done', function(data) {
+    if (data.project_id === PROJECT_ID) {
+        document.getElementById('storyFeedback').value = '';
+        storyboardBuffer = '';
+    }
+});
+
+// --- Helpers ---
+function renderMarkdown(md) {
+    let html = md;
+    html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^### (.+)$/gm, '<h3 style="margin-top:1.5rem">$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2 style="margin-top:2rem">$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    // Tables
+    html = html.replace(/^(\|.+\|)\n(\|[\s\-:|]+\|)\n((?:\|.+\|\n?)*)/gm, function(match, header, sep, body) {
+        const headers = header.split('|').filter(c => c.trim()).map(c => '<th>' + c.trim() + '</th>').join('');
+        const rows = body.trim().split('\n').map(row => {
+            const cells = row.split('|').filter(c => c.trim()).map(c => '<td>' + c.trim() + '</td>').join('');
+            return '<tr>' + cells + '</tr>';
+        }).join('');
+        return '<table><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table>';
+    });
+
+    html = html.replace(/\n/g, '<br>');
+    return html;
+}
+
+function copyStoryboard() {
+    const el = document.getElementById('storyboardOutput');
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.execCommand('copy');
+    sel.removeAllRanges();
+    alert('Copied to clipboard!');
+}
+
+// Update word count on page load if script exists
+{% if project.generated_script or project.edited_script %}
+updateWordCount();
+{% endif %}
+
+socket.on('error', function(data) {
+    alert('Error: ' + data.message);
+    document.querySelectorAll('.loading').forEach(el => {
+        el.classList.remove('loading');
+        el.disabled = false;
+    });
+});
+</script>
+{% endblock %}
