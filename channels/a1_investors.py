@@ -55,41 +55,34 @@ Create a two-column table in markdown format:
 - Keep the conversational, educational tone
 
 ## Caption/Graphics Column Rules
-For EVERY dialogue row, specify visual instructions using these conventions:
+NOT every row needs heavy graphics. Use a NATURAL MIX:
 
-### Text on Screen (ToS)
-- Key stats, definitions, or lists that should appear on screen
-- Format: `ToS: [text to display]`
-- For typing effects: `ToS with typing effect: [text]`
+### Presenter-Only Rows (~40% of rows)
+For conversational, explanatory, or transitional dialogue, the caption should simply be:
+- `Presenter direct address` — talking head, no graphics
+- `Presenter with subtle background` — e.g., market montage behind
+- `B-roll: [brief description]` — generic stock footage
+These are moments where the viewer connects with the presenter. Do NOT add ToS or charts to these rows.
 
-### Visual References
-- Stock footage suggestions from Envato Elements (describe the type of footage needed)
-- Example: `Stock footage: investors looking at screens, market trading floor`
-
-### Data Visualizations
-- Specify chart types: bar chart, line graph, comparison table, pie chart
-- Include the data that should be shown
-- Example: `Bar chart showing: TCS ROCE 64.6%, HUL 28%, L&T 13.5%`
-
-### Company/Brand Visuals
+### Data/Graphics Rows (~40% of rows)
+When the dialogue mentions specific numbers, stats, comparisons, or data:
+- `ToS: [key stat or definition]` — text on screen
+- Chart callouts: `Bar chart showing: [data]`, `Line graph: [data]`
 - `Show [Company] logo + key metric`
 - `Split screen: Company A vs Company B comparison`
+- `Source: [name]` — for data attributions
 
-### Source Citations
-- `Source: [name of source]` — for data attributions shown on screen
-
-### Camera/Presenter
-- `Direct address shot` — presenter looking at camera
-- `Presenter gesture to graphics` — when explaining on-screen data
-
-### Sound Effects
-- `SFX: dramatic reveal` / `SFX: transition whoosh` / `SFX: positive ding`
-- Use sparingly for emphasis
-
-### Transitions & Animations
-- `Animated transition to next section`
-- `Slow zoom in on [element]`
+### Transition/Impact Rows (~20% of rows)
+- `Animated section header: [Section Name]`
+- `SFX: dramatic reveal` / `SFX: transition whoosh` (use sparingly)
 - `Red buzzer effect on [wrong option], then reveal [correct option]`
+
+### IMPORTANT: The mix should feel natural
+- A presenter explaining context = just "Presenter direct address"
+- A presenter quoting a number = ToS with that number
+- A data comparison = chart or table
+- An emotional appeal or question = presenter close-up, no graphics
+- NEVER put ToS on every single row — it overwhelms the viewer
 
 ## Data Tables
 When the script contains data comparisons, create inline data tables in the storyboard (these are reference tables for the editor to recreate as graphics):
@@ -104,11 +97,13 @@ When the script contains data comparisons, create inline data tables in the stor
 5. **Shorts 2** (8-12 rows): Condensed storyboard for second short
 
 ## Pacing Rules
-- Alternate between explanation rows (longer dialogue, simpler visuals) and quick-fact rows (short dialogue, data-heavy visuals)
+- Alternate between presenter-only rows and data-heavy rows — NOT every row should have graphics
 - Use section transition rows: `Animated section header: [Section Name]`
 - Total rows for main storyboard: 45-70 rows
+- Aim for roughly 40% presenter-only, 40% data/graphics, 20% transitions
 
-## Example Row
+## Example Rows
+| So the question is — does a high ROCE always mean a great investment? The answer might surprise you. | Presenter direct address. Close-up shot, engaging tone. |
 | Let's take three Indian companies: TCS, HUL, and L&T. Their ROCE figures are vastly different. | ToS: ROCE Comparison. Bar chart showing: TCS 64.6%, HUL 28%, L&T 13.5%. Show company logos beside each bar. SFX: data reveal sound |"""
 
 CHANNEL = {

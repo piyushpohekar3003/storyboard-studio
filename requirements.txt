@@ -1,8 +1,7 @@
-anthropic
-python-docx
 flask
-flask-socketio
+anthropic
 python-dotenv
-openpyxl
 requests
+python-docx
 beautifulsoup4
+gunicorn

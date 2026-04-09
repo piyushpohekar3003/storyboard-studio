@@ -47,35 +47,32 @@ Create a two-column table in markdown:
 - Keep the peer-to-peer tone intact
 
 ## Caption/Graphics Column Rules
+NOT every row needs heavy graphics. Use a NATURAL MIX:
 
-### Text on Screen (ToS)
-- Key stats, comparisons, definitions
-- Format: `ToS: [text]` — these should be in English even though dialogue is Hinglish
-- For animated text: `ToS animated: [text]`
+### Presenter-Only Rows (~40% of rows)
+For conversational, explanatory, or transitional Hinglish dialogue:
+- `Presenter direct address` — talking head, no graphics
+- `Presenter reacting to data` — expression-based, no ToS
+- `B-roll: [brief description]` — generic stock footage
+These are moments where the viewer connects with the presenter. Do NOT add ToS to these rows.
 
-### Data Visualizations
-- Chart callouts: `Bar chart:`, `Line graph:`, `Comparison table:`
-- Google Sheets style tables for live data
-- Include the actual data to display
+### Data/Graphics Rows (~40% of rows)
+When specific numbers, stats, or comparisons are mentioned:
+- `ToS: [key stat]` — in English even though dialogue is Hinglish
+- `ToS animated: [text]` — for animated reveals
+- `Bar chart:`, `Line graph:`, `Comparison table:` — with actual data
+- `Source: [name]` — for credibility
 
-### Visual References
-- Stock footage descriptions for B-roll
-- Example: `B-roll: SIP investment journey animation, mutual fund house logos`
-
-### Analogies & Metaphors (Visual)
-- When the script uses analogies (jungle, tug-of-war), describe the visual representation
-- Example: `Animation: jungle scene with animals representing market cap categories`
-
-### Source Citations
-- `Source: [name]` — shown on screen for credibility
-
-### Presenter Shots
-- `Presenter direct address`
-- `Presenter reacting to data`
-
-### SFX & Transitions
-- `SFX: suspense build` / `SFX: revelation sting`
+### Analogy/Visual Rows (~20% of rows)
+- When analogies are used: `Animation: [visual metaphor description]`
+- `SFX: suspense build` / `SFX: revelation sting` (sparingly)
 - `Transition: swipe to comparison view`
+
+### IMPORTANT: The mix should feel natural
+- "Dosto, aaj hum baat karte hain..." = just "Presenter direct address"
+- "Data kya bolta hai? 18.2% CAGR!" = ToS with that number + chart
+- A question or emotional hook = presenter close-up, no graphics
+- NEVER put ToS on every single row — it overwhelms the viewer
 
 ## Storyboard Sections
 1. **Hook** (3-5 rows): Problem/scenario setup

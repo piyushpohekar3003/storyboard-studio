@@ -41,7 +41,7 @@
     <!-- Topic -->
     <div class="glass card">
         <p class="section-label">Video Topic</p>
-        <input type="text" class="glass-input" id="topic" name="topic" placeholder="e.g., Gold vs Silver Investment" required>
+        <input type="text" class="glass-input" id="topic" name="topic" placeholder="e.g., Gold vs Silver Investment">
     </div>
 
     <!-- Channel Selection -->
@@ -50,7 +50,7 @@
         {% for ch in channels %}
         <label class="channel-card" onclick="toggleChannel(this)">
             <input type="checkbox" name="channels" value="{{ ch.slug }}">
-            <div class="channel-info">
+            <div>
                 <h4>{{ ch.name }}</h4>
                 <p>{{ ch.description }}</p>
             </div>
@@ -58,8 +58,8 @@
         {% endfor %}
     </div>
 
-    <button type="submit" class="btn btn-primary" id="startBtn" style="width:100%;margin-top:0.5rem;padding:1rem;">
-        Generate Script & Storyboard
+    <button type="submit" class="btn btn-primary" id="startBtn" style="width:100%;margin-top:0.5rem;padding:12px;">
+        Create Project & Generate
     </button>
 </form>
 
@@ -94,30 +94,27 @@ document.getElementById('projectForm').addEventListener('submit', async function
         return;
     }
 
-    let researchText = '';
-    let sourceUrl = '';
-
-    if (inputType === 'url') {
-        sourceUrl = document.getElementById('docUrl').value;
-        if (!sourceUrl) { alert('Please enter a Google Doc URL.'); return; }
-    } else if (inputType === 'text') {
-        researchText = document.getElementById('researchText').value;
-        if (!researchText) { alert('Please paste your research text.'); return; }
-    } else if (inputType === 'file') {
-        const file = document.getElementById('researchFile').files[0];
-        if (!file) { alert('Please select a file.'); return; }
-        researchText = await file.text();
-    }
-
-    const formData = new URLSearchParams();
-    formData.append('topic', topic);
-    formData.append('channels', JSON.stringify(channels));
-    formData.append('research_text', researchText);
-    formData.append('source_url', sourceUrl);
-
     const btn = document.getElementById('startBtn');
     btn.classList.add('loading');
     btn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('topic', topic);
+    formData.append('channels', JSON.stringify(channels));
+
+    if (inputType === 'url') {
+        const url = document.getElementById('docUrl').value;
+        if (!url) { alert('Please enter a Google Doc URL.'); btn.classList.remove('loading'); btn.disabled = false; return; }
+        formData.append('source_url', url);
+    } else if (inputType === 'text') {
+        const text = document.getElementById('researchText').value;
+        if (!text) { alert('Please paste your research text.'); btn.classList.remove('loading'); btn.disabled = false; return; }
+        formData.append('research_text', text);
+    } else if (inputType === 'file') {
+        const file = document.getElementById('researchFile').files[0];
+        if (!file) { alert('Please select a file.'); btn.classList.remove('loading'); btn.disabled = false; return; }
+        formData.append('research_file', file);
+    }
 
     const resp = await fetch('/create', { method: 'POST', body: formData });
     const data = await resp.json();

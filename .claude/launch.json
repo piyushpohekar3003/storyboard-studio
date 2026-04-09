@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "storyboard-studio",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["/tmp/storyboard-preview/serve.py"],
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["/Users/piyushpohekar/Desktop/Claude explorations/Storyboarding/run.sh"],
       "port": 5000
     }
   ]
