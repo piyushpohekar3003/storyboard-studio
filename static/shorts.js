@@ -137,6 +137,7 @@ async function generateStoryboard() {
 
   const formData = new FormData();
   formData.append('script', currentScript);
+  formData.append('project_dir', projectDir);
   formData.append('images', JSON.stringify(currentImages));
 
   try {
@@ -150,36 +151,34 @@ async function generateStoryboard() {
           preview.scrollTop = preview.scrollHeight;
         }
       },
-      () => {
-        // Try to parse JSON from the accumulated text
+      (fullText) => {
+        // fullText is the clean accumulated LLM output (JSON string)
+        console.log('LLM output length:', fullText.length);
         try {
-          // Extract JSON from possible SSE wrapper
-          let jsonStr = text;
-          // If text has SSE event format, extract data lines
-          const dataLines = text.split('\n')
-            .filter(l => l.startsWith('data: '))
-            .map(l => l.slice(6));
-          if (dataLines.length > 0) {
-            jsonStr = dataLines.join('');
+          // Strip markdown code fences if present
+          let jsonStr = fullText.trim();
+          if (jsonStr.startsWith('```')) {
+            jsonStr = jsonStr.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
           }
           currentStoryboardJson = JSON.parse(jsonStr);
-          projectDir = currentStoryboardJson.project_dir || '';
+          currentStoryboardJson._project_dir = projectDir;
           renderStoryboard();
         } catch (parseErr) {
           console.error('JSON parse error:', parseErr);
-          // Try to find JSON in the text
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          console.log('Raw text:', fullText.slice(0, 500));
+          // Try to find JSON object in the text
+          const jsonMatch = fullText.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             try {
               currentStoryboardJson = JSON.parse(jsonMatch[0]);
-              projectDir = currentStoryboardJson.project_dir || '';
+              currentStoryboardJson._project_dir = projectDir;
               renderStoryboard();
             } catch (e2) {
-              alert('Failed to parse storyboard response. Check console.');
+              alert('Failed to parse storyboard JSON. Check console.');
               switchState('input');
             }
           } else {
-            alert('Failed to parse storyboard response. Check console.');
+            alert('No valid JSON found in response. Check console.');
             switchState('input');
           }
         }
@@ -201,17 +200,40 @@ async function streamSSE(url, formData, onChunk, onDone) {
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
-  let fullText = '';
+  let buffer = '';
+  let accumulatedText = '';
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    const chunk = decoder.decode(value, { stream: true });
-    fullText += chunk;
-    onChunk(chunk);
+    buffer += decoder.decode(value, { stream: true });
+
+    // Parse SSE events from buffer
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || ''; // keep incomplete line in buffer
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.text) {
+            accumulatedText += data.text;
+            onChunk(data.text);
+          }
+          if (data.done) {
+            // Server signals completion — use full_text if provided
+            if (data.full_text) {
+              accumulatedText = data.full_text;
+            }
+          }
+        } catch (e) {
+          // Not valid JSON, skip
+        }
+      }
+    }
   }
 
-  onDone(fullText);
+  onDone(accumulatedText);
 }
 
 // ── Rendering ──
