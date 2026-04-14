@@ -1,5 +1,34 @@
 /* ===== Shorts Visual Storyboard ===== */
 
+// ── Cost tracker ──
+// Sonnet: $3/M input, $15/M output
+const COST_PER_INPUT_TOKEN = 3 / 1_000_000;
+const COST_PER_OUTPUT_TOKEN = 15 / 1_000_000;
+let sessionCost = { inputTokens: 0, outputTokens: 0, calls: 0 };
+
+function estimateTokens(text) {
+  return Math.ceil((text || '').length / 3.5);
+}
+
+function addCost(inputText, outputText) {
+  sessionCost.inputTokens += estimateTokens(inputText);
+  sessionCost.outputTokens += estimateTokens(outputText);
+  sessionCost.calls += 1;
+  updateCostDisplay();
+}
+
+function updateCostDisplay() {
+  const el = document.getElementById('cost-counter');
+  if (!el) return;
+  const totalCost = (sessionCost.inputTokens * COST_PER_INPUT_TOKEN) + (sessionCost.outputTokens * COST_PER_OUTPUT_TOKEN);
+  el.innerHTML = `
+    <span class="cost-label">Session</span>
+    <span class="cost-value">$${totalCost.toFixed(4)}</span>
+    <span class="cost-detail">${sessionCost.calls} call${sessionCost.calls !== 1 ? 's' : ''} · ~${(sessionCost.inputTokens + sessionCost.outputTokens).toLocaleString()} tok</span>
+  `;
+  el.style.display = 'flex';
+}
+
 // ── State management ──
 let currentState = 'input'; // 'input' | 'loading' | 'preview'
 let currentScript = '';
@@ -162,6 +191,7 @@ async function generateStoryboard() {
           }
           currentStoryboardJson = JSON.parse(jsonStr);
           currentStoryboardJson._project_dir = projectDir;
+          addCost(currentScript, fullText);
           renderStoryboard();
         } catch (parseErr) {
           console.error('JSON parse error:', parseErr);
@@ -172,6 +202,7 @@ async function generateStoryboard() {
             try {
               currentStoryboardJson = JSON.parse(jsonMatch[0]);
               currentStoryboardJson._project_dir = projectDir;
+              addCost(currentScript, fullText);
               renderStoryboard();
             } catch (e2) {
               alert('Failed to parse storyboard JSON. Check console.');
@@ -540,6 +571,7 @@ async function submitFeedback() {
           }
           currentStoryboardJson = JSON.parse(jsonStr);
           projectDir = currentStoryboardJson.project_dir || projectDir;
+          addCost(feedback + currentScript, redoText);
           $('feedback-textarea').value = '';
           renderStoryboard();
         } catch (parseErr) {
@@ -549,6 +581,7 @@ async function submitFeedback() {
             try {
               currentStoryboardJson = JSON.parse(jsonMatch[0]);
               projectDir = currentStoryboardJson.project_dir || projectDir;
+              addCost(feedback + currentScript, redoText);
               $('feedback-textarea').value = '';
               renderStoryboard();
             } catch (e2) {
