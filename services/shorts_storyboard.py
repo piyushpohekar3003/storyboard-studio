@@ -17,14 +17,23 @@ STYLE_GUIDE_PATH = os.path.join(
     "a1_investors_shorts_rules.md",
 )
 
+VISUAL_SPEC_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)),
+    "style-guides",
+    "a1_investors_shorts_visual_spec.md",
+)
+
 
 def _load_style_guide():
-    """Load the shorts visual rulebook."""
-    try:
-        with open(STYLE_GUIDE_PATH, "r") as f:
-            return f.read()
-    except FileNotFoundError:
-        return "(Style guide not found — use sensible defaults for 1080x1920 dark neon style)"
+    """Load the shorts visual rulebook + visual spec."""
+    parts = []
+    for path, label in [(STYLE_GUIDE_PATH, "STYLE RULES"), (VISUAL_SPEC_PATH, "VISUAL SPEC (from 34 reference screenshots)")]:
+        try:
+            with open(path, "r") as f:
+                parts.append(f"## {label}\n\n{f.read()}")
+        except FileNotFoundError:
+            pass
+    return "\n\n---\n\n".join(parts) if parts else "(Style guide not found)"
 
 
 SYSTEM_PROMPT_TEMPLATE = """You are a Visual Storyboard Designer for Angel One Investors YouTube shorts.

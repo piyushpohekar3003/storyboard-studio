@@ -134,10 +134,13 @@ class ShortsFrameRenderer:
         )
 
     def _presenter_image(self, path: str) -> str:
-        # Aparna fills bottom 60% of frame, head at ~y=750
+        # From 34 reference screenshots:
+        # Aparna fills 80%+ of frame. Head at y~15-20% (y=290-380).
+        # Body extends to y~95% (y=1820). She's centered horizontally.
+        # Image must be LARGE — covering most of the frame.
         return (
             '  <g id="PRESENTER-IMAGE">\n'
-            f'    <image href="{_esc(path)}" x="40" y="750" width="1000" height="1170" '
+            f'    <image href="{_esc(path)}" x="90" y="350" width="900" height="1550" '
             f'preserveAspectRatio="xMidYMax meet"/>\n'
             "  </g>\n"
         )
@@ -283,10 +286,14 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_text_overlays(self, elements: list) -> str:
-        """Stack of centered text lines in the TOP of frame (y=200-550 max).
+        """Stack of text lines in TOP of frame, ABOVE Aparna's head.
 
-        All text must be ABOVE Aparna's head. With Aparna at y=750,
-        text must stay in y=200-550 zone.
+        From 34 reference screenshots:
+        - Text starts at y=150-200 (top 8-10% of frame)
+        - Left-aligned at x=50
+        - Font sizes: 72-160px for headlines, very bold (800-900)
+        - Aparna's head starts at y~350, so text must end by y~330
+        - Each line gets ~100px vertical space (for 72px text)
         """
         svg = '  <g id="PRESENTER-TEXT">\n'
         n = len(elements)
@@ -294,24 +301,25 @@ class ShortsFrameRenderer:
             svg += "  </g>\n"
             return svg
 
-        # Calculate total height needed, then center in the y=200-550 zone
-        # Each element gets ~120px of vertical space
-        total_h = n * 120
-        zone_top = 200
-        zone_bottom = 550
-        zone_center = (zone_top + zone_bottom) // 2
-        start_y = max(zone_top, zone_center - total_h // 2 + 40)
+        # Start at y=180, each line ~100px apart
+        # For single large numbers, center them
+        start_y = 200
+        line_height = 100
 
         for i, elem in enumerate(elements):
             text = elem.get("text", "")
-            color = _color(elem.get("color", "white"))
-            font_size = elem.get("font_size", 56)
-            weight = elem.get("weight", "700")
-            y = start_y + i * 120
+            color = _color(elem.get("color", "gold"))
+            font_size = elem.get("font_size", 72)
+            weight = elem.get("weight", "800")
+            y = start_y + i * line_height
+
+            # For very large single numbers (>100px), center horizontally
+            x = "540" if (n == 1 and font_size >= 100) else "60"
+            anchor = "middle" if (n == 1 and font_size >= 100) else "start"
 
             weight_attr = f' font-weight="{weight}"' if weight != "400" else ""
             svg += (
-                f'    <text x="540" y="{y}" text-anchor="middle" font-family="{FONT}"'
+                f'    <text x="{x}" y="{y}" text-anchor="{anchor}" font-family="{FONT}"'
                 f'{weight_attr} font-size="{font_size}" fill="{color}">{_esc(text)}</text>\n'
             )
 
@@ -319,16 +327,16 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_ranking_cards(self, element: dict) -> str:
-        """Stacked ranking rows with optional badge pills (must fit above y=700)."""
+        """Stacked ranking rows with optional badge pills (above Aparna, y=130-330)."""
         items = element.get("items", [])
         svg = '  <g id="RANKING">\n'
 
         n = len(items)
-        card_w = 880
-        card_h = 110
-        card_x = 100
-        gap = min(140, (650 - 200) // max(n, 1))
-        start_y = max(180, 700 - n * gap - 30)
+        card_w = 960
+        card_h = 90
+        card_x = 60
+        gap = min(110, (300 - 130) // max(n, 1))
+        start_y = max(130, 340 - n * gap)
 
         for i, item in enumerate(items):
             y = start_y + i * gap
@@ -393,17 +401,17 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_callout_cards(self, element: dict) -> str:
-        """Numbered callout cards stacked vertically (must fit above y=700)."""
+        """Numbered callout cards stacked vertically (above Aparna, y=150-330)."""
         items = element.get("items", [])
         svg = '  <g id="CALLOUT-CARDS">\n'
 
-        # All cards must be above Aparna's head (y=700)
+        # Cards must be above Aparna's head at y~350
         n = len(items)
-        card_h = 110
-        gap = min(140, (650 - 200) // max(n, 1))
-        start_y = max(180, 700 - n * gap - 30)
-        card_x = 100
-        card_w = 880
+        card_h = 90
+        gap = min(110, (300 - 130) // max(n, 1))
+        start_y = max(130, 340 - n * gap)
+        card_x = 60
+        card_w = 960
 
         for i, item in enumerate(items):
             y = start_y + i * gap
@@ -497,7 +505,7 @@ class ShortsFrameRenderer:
         pill_w = text_width + 80
         pill_h = 60
         pill_x = 540 - pill_w // 2
-        pill_y = 350
+        pill_y = 200
         rx = 30
 
         # Use larger y for section_header frame types (badge is lower)
