@@ -180,12 +180,16 @@ class ShortsFrameRenderer:
         return "".join(parts)
 
     def _render_presenter_cards(self, frame: dict) -> str:
-        """Presenter + cards frame: section badge, callout cards, ranking cards, etc."""
+        """Presenter + cards frame. ALL elements must be in y=130-340 zone."""
         parts = []
         elements = frame.get("on_screen_elements") or []
 
+        # For presenter_cards, override stat_badge y to be in safe zone
         for elem in elements:
-            parts.append(self._render_element(elem))
+            if elem.get("type") == "stat_badge":
+                parts.append(self._render_stat_badges(elem, 150))
+            else:
+                parts.append(self._render_element(elem))
 
         return "".join(parts)
 
