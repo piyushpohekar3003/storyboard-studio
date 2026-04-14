@@ -343,11 +343,11 @@ class ShortsFrameRenderer:
         card_x = 60
         card_w = 960
         zone_top = 120
-        zone_bottom = 340
+        zone_bottom = 380
         zone_h = zone_bottom - zone_top
 
-        padding = 8
-        card_h = min(80, (zone_h - padding * (n - 1)) // n)
+        padding = 10
+        card_h = min(90, (zone_h - padding * (n - 1)) // n)
         card_h = max(50, card_h)
         total_h = n * card_h + (n - 1) * padding
         start_y = zone_top + max(0, (zone_h - total_h) // 2)
@@ -424,19 +424,19 @@ class ShortsFrameRenderer:
         card_x = 60
         card_w = 960
         zone_top = 120
-        zone_bottom = 340
-        zone_h = zone_bottom - zone_top  # 220px available
+        zone_bottom = 380
+        zone_h = zone_bottom - zone_top  # 260px available
 
         # Calculate card_h and spacing to fit all items
-        padding = 8  # minimum gap between cards
-        card_h = min(70, (zone_h - padding * (n - 1)) // n)
-        card_h = max(50, card_h)  # never smaller than 50px
+        padding = 10
+        card_h = min(90, (zone_h - padding * (n - 1)) // n)
+        card_h = max(50, card_h)
         total_h = n * card_h + (n - 1) * padding
         start_y = zone_top + max(0, (zone_h - total_h) // 2)  # center vertically
 
         # Scale circle and text to fit card height
-        circle_r = min(18, (card_h - 12) // 2)
-        font_size = min(26, card_h - 24)
+        circle_r = min(22, (card_h - 12) // 2)
+        font_size = min(30, card_h - 22)
 
         for i, item in enumerate(items):
             y = start_y + i * (card_h + padding)
