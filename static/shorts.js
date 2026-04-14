@@ -255,6 +255,9 @@ async function renderStoryboard() {
     const svgPaths = data.svg_paths || [];
     const htmlPath = data.html_path || '';
 
+    // Update project dir from render response
+    if (data.project_dir) projectDir = data.project_dir;
+
     // Store html path for download
     currentStoryboardJson._html_path = htmlPath;
     currentStoryboardJson._svg_paths = svgPaths;

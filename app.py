@@ -430,6 +430,12 @@ def shorts_generate():
     script = request.form.get("script", "")
     project_dir = request.form.get("project_dir", "")
 
+    # Create project dir if not set (user pasted text without uploading)
+    if not project_dir:
+        import time
+        project_dir = f"projects/{int(time.time() * 1000)}"
+        os.makedirs(f"static/{project_dir}/screenshots", exist_ok=True)
+
     # Load images from the project dir
     images = []
     images_path = f"static/{project_dir}/images.json"

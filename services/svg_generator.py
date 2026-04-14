@@ -134,9 +134,10 @@ class ShortsFrameRenderer:
         )
 
     def _presenter_image(self, path: str) -> str:
+        # Aparna fills bottom 60% of frame, head at ~y=750
         return (
             '  <g id="PRESENTER-IMAGE">\n'
-            f'    <image href="{_esc(path)}" x="115" y="1000" width="850" height="880" '
+            f'    <image href="{_esc(path)}" x="40" y="750" width="1000" height="1170" '
             f'preserveAspectRatio="xMidYMax meet"/>\n'
             "  </g>\n"
         )
@@ -282,30 +283,31 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_text_overlays(self, elements: list) -> str:
-        """Stack of centered text lines ABOVE presenter (y=300-750 safe zone)."""
+        """Stack of centered text lines in the TOP of frame (y=200-550 max).
+
+        All text must be ABOVE Aparna's head. With Aparna at y=750,
+        text must stay in y=200-550 zone.
+        """
         svg = '  <g id="PRESENTER-TEXT">\n'
         n = len(elements)
         if n == 0:
             svg += "  </g>\n"
             return svg
 
-        # Distribute text in y=350-750 range (well above presenter at y=1000)
-        if n == 1:
-            y_positions = [550]
-        elif n == 2:
-            y_positions = [420, 600]
-        elif n == 3:
-            y_positions = [350, 500, 650]
-        else:
-            step = 400 // max(n - 1, 1)
-            y_positions = [350 + i * step for i in range(n)]
+        # Calculate total height needed, then center in the y=200-550 zone
+        # Each element gets ~120px of vertical space
+        total_h = n * 120
+        zone_top = 200
+        zone_bottom = 550
+        zone_center = (zone_top + zone_bottom) // 2
+        start_y = max(zone_top, zone_center - total_h // 2 + 40)
 
         for i, elem in enumerate(elements):
             text = elem.get("text", "")
             color = _color(elem.get("color", "white"))
-            font_size = elem.get("font_size", 48)
-            weight = elem.get("weight", "400")
-            y = y_positions[i] if i < len(y_positions) else 350 + i * 100
+            font_size = elem.get("font_size", 56)
+            weight = elem.get("weight", "700")
+            y = start_y + i * 120
 
             weight_attr = f' font-weight="{weight}"' if weight != "400" else ""
             svg += (
@@ -317,7 +319,7 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_ranking_cards(self, element: dict) -> str:
-        """Stacked ranking rows with optional badge pills (must fit above y=950)."""
+        """Stacked ranking rows with optional badge pills (must fit above y=700)."""
         items = element.get("items", [])
         svg = '  <g id="RANKING">\n'
 
@@ -325,8 +327,8 @@ class ShortsFrameRenderer:
         card_w = 880
         card_h = 110
         card_x = 100
-        gap = min(140, (900 - 300) // max(n, 1))  # shrink if many items
-        start_y = max(250, 950 - n * gap - 50)     # push up if needed
+        gap = min(140, (650 - 200) // max(n, 1))
+        start_y = max(180, 700 - n * gap - 30)
 
         for i, item in enumerate(items):
             y = start_y + i * gap
@@ -391,17 +393,17 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_callout_cards(self, element: dict) -> str:
-        """Numbered callout cards stacked vertically (must fit above y=950)."""
+        """Numbered callout cards stacked vertically (must fit above y=700)."""
         items = element.get("items", [])
         svg = '  <g id="CALLOUT-CARDS">\n'
 
-        # Dynamically size to fit all items above y=950
+        # All cards must be above Aparna's head (y=700)
         n = len(items)
-        card_h = 100
-        gap = min(140, (900 - 350) // max(n, 1))  # shrink gap if many items
-        start_y = max(300, 950 - n * gap - 50)     # push up if needed
-        card_x = 140
-        card_w = 800
+        card_h = 110
+        gap = min(140, (650 - 200) // max(n, 1))
+        start_y = max(180, 700 - n * gap - 30)
+        card_x = 100
+        card_w = 880
 
         for i, item in enumerate(items):
             y = start_y + i * gap
@@ -495,7 +497,7 @@ class ShortsFrameRenderer:
         pill_w = text_width + 80
         pill_h = 60
         pill_x = 540 - pill_w // 2
-        pill_y = 300
+        pill_y = 350
         rx = 30
 
         # Use larger y for section_header frame types (badge is lower)
