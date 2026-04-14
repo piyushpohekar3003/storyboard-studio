@@ -331,19 +331,33 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_ranking_cards(self, element: dict) -> str:
-        """Stacked ranking rows with optional badge pills (above Aparna, y=130-330)."""
+        """Stacked ranking rows. Safe zone: y=120 to y=340. Never overlaps."""
         items = element.get("items", [])
         svg = '  <g id="RANKING">\n'
 
         n = len(items)
-        card_w = 960
-        card_h = 90
+        if n == 0:
+            svg += "  </g>\n"
+            return svg
+
         card_x = 60
-        gap = min(110, (300 - 130) // max(n, 1))
-        start_y = max(130, 340 - n * gap)
+        card_w = 960
+        zone_top = 120
+        zone_bottom = 340
+        zone_h = zone_bottom - zone_top
+
+        padding = 8
+        card_h = min(80, (zone_h - padding * (n - 1)) // n)
+        card_h = max(50, card_h)
+        total_h = n * card_h + (n - 1) * padding
+        start_y = zone_top + max(0, (zone_h - total_h) // 2)
+
+        rank_font = min(36, card_h - 16)
+        label_font = min(28, card_h - 20)
+        sublabel_font = min(18, card_h - 34)
 
         for i, item in enumerate(items):
-            y = start_y + i * gap
+            y = start_y + i * (card_h + padding)
             rank = item.get("rank", f"#{i+1}")
             label = item.get("label", "")
             sublabel = item.get("sublabel", "")
@@ -357,47 +371,36 @@ class ShortsFrameRenderer:
             label_weight = "700" if highlight else "600"
             sublabel_fill = "#b0b0b8" if highlight else color
 
-            # Card background
             svg += (
-                f'    <rect x="{card_x}" y="{y}" width="{card_w}" height="{card_h}" rx="16" '
+                f'    <rect x="{card_x}" y="{y}" width="{card_w}" height="{card_h}" rx="12" '
                 f'fill="#0e0e19" fill-opacity="0.95" stroke="{color}" stroke-width="{stroke_w}"'
                 f'{opacity_attr}/>\n'
             )
 
-            # Rank number
-            rank_y = y + 52
+            # Single-line layout: rank + label on same line, centered vertically
+            text_cy = y + card_h // 2 + rank_font // 3
             svg += (
-                f'    <text x="{card_x + 50}" y="{rank_y}" font-family="{FONT}" '
-                f'font-size="48" fill="{color}">{_esc(rank)}</text>\n'
+                f'    <text x="{card_x + 20}" y="{text_cy}" font-family="{FONT}" '
+                f'font-size="{rank_font}" fill="{color}">{_esc(rank)}</text>\n'
             )
-
-            # Label
             svg += (
-                f'    <text x="{card_x + 140}" y="{rank_y}" font-family="{FONT}" '
-                f'font-weight="{label_weight}" font-size="32" fill="{label_fill}">'
+                f'    <text x="{card_x + 100}" y="{text_cy}" font-family="{FONT}" '
+                f'font-weight="{label_weight}" font-size="{label_font}" fill="{label_fill}">'
                 f'{_esc(label)}</text>\n'
             )
 
-            # Sublabel
-            sublabel_y = y + 98
-            svg += (
-                f'    <text x="{card_x + 140}" y="{sublabel_y}" font-family="{FONT}" '
-                f'font-weight="400" font-size="20" fill="{sublabel_fill}">'
-                f'{_esc(sublabel)}</text>\n'
-            )
-
-            # Badge pill
+            # Badge pill (right side, vertically centered)
             if badge:
-                badge_x = 780
-                badge_y = y + 62
-                pill_y = badge_y - 25
+                badge_x = card_x + card_w - 180
+                pill_cy = y + card_h // 2
+                pill_h = min(40, card_h - 12)
                 svg += (
-                    f'    <rect x="{badge_x}" y="{pill_y}" width="160" height="50" rx="25" '
+                    f'    <rect x="{badge_x}" y="{pill_cy - pill_h // 2}" width="160" height="{pill_h}" rx="{pill_h // 2}" '
                     f'fill="{color}" fill-opacity="0.15" stroke="{color}" stroke-width="1.5"/>\n'
                 )
                 svg += (
-                    f'    <text x="{badge_x + 80}" y="{badge_y + 8}" text-anchor="middle" '
-                    f'font-family="{FONT}" font-weight="700" font-size="22" fill="{color}">'
+                    f'    <text x="{badge_x + 80}" y="{pill_cy + 6}" text-anchor="middle" '
+                    f'font-family="{FONT}" font-weight="700" font-size="{min(18, pill_h - 8)}" fill="{color}">'
                     f'{_esc(badge)}</text>\n'
                 )
 
@@ -405,49 +408,67 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_callout_cards(self, element: dict) -> str:
-        """Numbered callout cards stacked vertically (above Aparna, y=150-330)."""
+        """Numbered callout cards stacked vertically.
+
+        Safe zone: y=120 to y=340. Cards must fit WITHOUT overlapping.
+        Strategy: shrink card height to fit, never let gap < card_h + 8.
+        """
         items = element.get("items", [])
         svg = '  <g id="CALLOUT-CARDS">\n'
 
-        # Cards must be above Aparna's head at y~350
         n = len(items)
-        card_h = 90
-        gap = min(110, (300 - 130) // max(n, 1))
-        start_y = max(130, 340 - n * gap)
+        if n == 0:
+            svg += "  </g>\n"
+            return svg
+
         card_x = 60
         card_w = 960
+        zone_top = 120
+        zone_bottom = 340
+        zone_h = zone_bottom - zone_top  # 220px available
+
+        # Calculate card_h and spacing to fit all items
+        padding = 8  # minimum gap between cards
+        card_h = min(70, (zone_h - padding * (n - 1)) // n)
+        card_h = max(50, card_h)  # never smaller than 50px
+        total_h = n * card_h + (n - 1) * padding
+        start_y = zone_top + max(0, (zone_h - total_h) // 2)  # center vertically
+
+        # Scale circle and text to fit card height
+        circle_r = min(18, (card_h - 12) // 2)
+        font_size = min(26, card_h - 24)
 
         for i, item in enumerate(items):
-            y = start_y + i * gap
+            y = start_y + i * (card_h + padding)
             number = item.get("number", i + 1)
             text = item.get("text", "")
-            color = _color(item.get("color", "red"))
+            color = _color(item.get("color", "cyan"))
 
             # Card rect
             svg += (
-                f'    <rect x="{card_x}" y="{y}" width="{card_w}" height="{card_h}" rx="16" '
+                f'    <rect x="{card_x}" y="{y}" width="{card_w}" height="{card_h}" rx="12" '
                 f'fill="#0e0e19" fill-opacity="0.95" stroke="{color}" stroke-width="2"/>\n'
             )
 
             # Numbered circle
-            circle_cx = card_x + 70
+            circle_cx = card_x + 45
             circle_cy = y + card_h // 2
             svg += (
-                f'    <circle cx="{circle_cx}" cy="{circle_cy}" r="24" '
+                f'    <circle cx="{circle_cx}" cy="{circle_cy}" r="{circle_r}" '
                 f'fill="{color}" fill-opacity="0.15" stroke="{color}" stroke-width="1.5"/>\n'
             )
             svg += (
-                f'    <text x="{circle_cx}" y="{circle_cy + 8}" text-anchor="middle" '
-                f'font-family="{FONT}" font-weight="700" font-size="20" fill="{color}">'
+                f'    <text x="{circle_cx}" y="{circle_cy + 6}" text-anchor="middle" '
+                f'font-family="{FONT}" font-weight="700" font-size="{min(16, circle_r + 2)}" fill="{color}">'
                 f'{number}</text>\n'
             )
 
-            # Text
-            text_x = circle_cx + 60
-            text_y = circle_cy + 8
+            # Text label
+            text_x = circle_cx + circle_r + 20
+            text_y = circle_cy + font_size // 3
             svg += (
                 f'    <text x="{text_x}" y="{text_y}" font-family="{FONT}" '
-                f'font-weight="600" font-size="30" fill="#ffffff">{_esc(text)}</text>\n'
+                f'font-weight="600" font-size="{font_size}" fill="#ffffff">{_esc(text)}</text>\n'
             )
 
         svg += "  </g>\n"
