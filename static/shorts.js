@@ -26,8 +26,10 @@ function updateCostDisplay() {
     <span class="cost-value">$${totalCost.toFixed(4)}</span>
     <span class="cost-detail">${sessionCost.calls} call${sessionCost.calls !== 1 ? 's' : ''} · ~${(sessionCost.inputTokens + sessionCost.outputTokens).toLocaleString()} tok</span>
   `;
-  el.style.display = 'flex';
 }
+
+// Show counter on page load
+document.addEventListener('DOMContentLoaded', () => { updateCostDisplay(); });
 
 // ── State management ──
 let currentState = 'input'; // 'input' | 'loading' | 'preview'

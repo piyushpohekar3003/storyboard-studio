@@ -525,16 +525,17 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_cta_cards(self, element: dict) -> str:
-        """Stacked CTA action cards."""
+        """Stacked CTA action cards (above Aparna, y=130-330)."""
         items = element.get("items", [])
         svg = '  <g id="CTA-CARDS">\n'
 
-        start_y = 720
-        gap = 150
-        card_x = 180
-        card_w = 720
-        card_h = 110
-        rx = 20
+        n = len(items)
+        card_h = 80
+        gap = min(100, (300 - 130) // max(n, 1))
+        start_y = max(130, 340 - n * gap)
+        card_x = 60
+        card_w = 960
+        rx = 16
 
         for i, item in enumerate(items):
             y = start_y + i * gap
@@ -546,21 +547,21 @@ class ShortsFrameRenderer:
                 f'fill="#0e0e19" fill-opacity="0.95" stroke="{color}" stroke-width="2"/>\n'
             )
             svg += (
-                f'    <text x="540" y="{y + 68}" text-anchor="middle" font-family="{FONT}" '
-                f'font-weight="600" font-size="30" fill="{color}">{_esc(text)}</text>\n'
+                f'    <text x="540" y="{y + card_h // 2 + 10}" text-anchor="middle" font-family="{FONT}" '
+                f'font-weight="600" font-size="28" fill="{color}">{_esc(text)}</text>\n'
             )
 
         svg += "  </g>\n"
         return svg
 
     def _render_bottom_text(self, element: dict) -> str:
-        """Single line of emphasized text near the bottom of the content area."""
+        """Single line of text just above Aparna's head area."""
         text = element.get("text", "")
         color = _color(element.get("color", "gold"))
 
         return (
             '  <g id="BOTTOM-TEXT">\n'
-            f'    <text x="540" y="1120" text-anchor="middle" font-family="{FONT}" '
+            f'    <text x="60" y="330" font-family="{FONT}" '
             f'font-weight="700" font-size="30" fill="{color}">{_esc(text)}</text>\n'
             "  </g>\n"
         )
