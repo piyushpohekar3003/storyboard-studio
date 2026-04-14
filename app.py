@@ -17,7 +17,13 @@ from services.generator import (
     structure_script_stream,
     generate_visuals_stream,
 )
-from services.exporter import markdown_to_docx, script_to_docx
+from services.exporter import markdown_to_docx, script_to_docx, bytes_visuals_to_docx, bytes_visuals_to_pdf
+from services.image_extractor import extract_from_file, save_images_to_disk
+from services.shorts_storyboard import (
+    generate_visual_storyboard_stream,
+    add_image_to_storyboard_stream,
+    parse_storyboard_json,
+)
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "storyboard-generator-secret"
@@ -194,6 +200,27 @@ def bytes_visuals():
     return sse_stream(generate_visuals_stream(script, category))
 
 
+@app.route("/api/bytes/export", methods=["POST"])
+def bytes_export():
+    visuals_raw = request.form.get("visuals", "[]")
+    script_text = request.form.get("script", "")
+    title = request.form.get("title", "A1 Bytes — Visual Storyboard")
+
+    try:
+        visuals = json.loads(visuals_raw)
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid visuals JSON"}), 400
+
+    buffer = bytes_visuals_to_pdf(visuals, script_text, title)
+    safe_title = title[:50].replace("/", "-")
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"{safe_title}.pdf",
+        mimetype="application/pdf",
+    )
+
+
 @app.route("/history")
 def history():
     channel_filter = request.args.get("channel")
@@ -315,6 +342,253 @@ def export_script(project_id):
         download_name=f"{project['topic'][:50]} - Script.docx",
         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     )
+
+
+# --- Shorts Visual Storyboard ---
+
+
+@app.route("/shorts")
+def shorts_page():
+    return render_template("shorts.html")
+
+
+@app.route("/api/shorts/upload", methods=["POST"])
+def shorts_upload():
+    """Extract text + images from an uploaded file."""
+    file = request.files.get("file")
+    if not file:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    with tempfile.NamedTemporaryFile(
+        suffix=os.path.splitext(file.filename)[1], delete=False
+    ) as tmp:
+        file.save(tmp.name)
+        tmp_path = tmp.name
+
+    try:
+        text, images = extract_from_file(tmp_path)
+        # Strip base64 data from response to keep it small — store separately
+        image_summaries = [
+            {"index": i, "description": img.get("description", f"Image {i}"),
+             "width": img.get("width", 0), "height": img.get("height", 0)}
+            for i, img in enumerate(images)
+        ]
+        # Save images to a temp project dir
+        import time
+        project_dir = f"projects/{int(time.time() * 1000)}"
+        os.makedirs(f"static/{project_dir}/screenshots", exist_ok=True)
+        save_images_to_disk(images, f"static/{project_dir}/screenshots")
+
+        # Store images in session-like temp storage (as JSON file)
+        with open(f"static/{project_dir}/images.json", "w") as f:
+            json.dump(images, f)
+
+        return jsonify({
+            "text": text,
+            "images": image_summaries,
+            "project_dir": project_dir,
+            "image_count": len(images),
+        })
+    finally:
+        os.unlink(tmp_path)
+
+
+@app.route("/api/shorts/fetch-gdoc", methods=["POST"])
+def shorts_fetch_gdoc():
+    """Extract text + images from a Google Doc URL."""
+    url = request.form.get("url", "")
+    if not is_google_doc_url(url):
+        return jsonify({"error": "Invalid Google Doc URL"}), 400
+
+    text, images = extract_from_file(url)
+
+    import time
+    project_dir = f"projects/{int(time.time() * 1000)}"
+    os.makedirs(f"static/{project_dir}/screenshots", exist_ok=True)
+    save_images_to_disk(images, f"static/{project_dir}/screenshots")
+
+    with open(f"static/{project_dir}/images.json", "w") as f:
+        json.dump(images, f)
+
+    image_summaries = [
+        {"index": i, "description": img.get("description", f"Image {i}"),
+         "width": img.get("width", 0), "height": img.get("height", 0)}
+        for i, img in enumerate(images)
+    ]
+
+    return jsonify({
+        "text": text,
+        "images": image_summaries,
+        "project_dir": project_dir,
+        "image_count": len(images),
+    })
+
+
+@app.route("/api/shorts/generate", methods=["POST"])
+def shorts_generate():
+    """SSE stream — LLM generates visual storyboard JSON."""
+    script = request.form.get("script", "")
+    project_dir = request.form.get("project_dir", "")
+
+    # Load images from the project dir
+    images = []
+    images_path = f"static/{project_dir}/images.json"
+    if os.path.exists(images_path):
+        with open(images_path, "r") as f:
+            images = json.load(f)
+
+    return sse_stream(generate_visual_storyboard_stream(script, images))
+
+
+@app.route("/api/shorts/render", methods=["POST"])
+def shorts_render():
+    """Takes JSON, generates SVG files + storyboard HTML, returns paths."""
+    import shutil
+
+    storyboard_json = request.get_json()
+    if not storyboard_json:
+        return jsonify({"error": "No storyboard JSON provided"}), 400
+
+    project_dir = storyboard_json.get("_project_dir", "")
+    if not project_dir:
+        import time
+        project_dir = f"projects/{int(time.time() * 1000)}"
+        os.makedirs(f"static/{project_dir}", exist_ok=True)
+
+    # Lazy import to avoid circular dependency at startup
+    from services.svg_generator import ShortsFrameRenderer, generate_storyboard_html
+
+    renderer = ShortsFrameRenderer()
+    svg_paths = []
+    frame_num = 0
+
+    for section in storyboard_json.get("sections", []):
+        for frame in section.get("frames", []):
+            frame_num += 1
+            svg_string = renderer.render(
+                frame,
+                screenshot_dir=f"screenshots",
+                aparna_path="aparna.png",
+            )
+            filename = f"frame-{frame_num:02d}.svg"
+            filepath = f"static/{project_dir}/{filename}"
+            with open(filepath, "w") as f:
+                f.write(svg_string)
+            svg_paths.append(filename)
+
+    # Copy aparna.png into project dir
+    aparna_src = os.path.join("static", "aparna.png")
+    aparna_dst = os.path.join("static", project_dir, "aparna.png")
+    if os.path.exists(aparna_src) and not os.path.exists(aparna_dst):
+        shutil.copy2(aparna_src, aparna_dst)
+
+    # Generate storyboard HTML
+    html_content = generate_storyboard_html(storyboard_json, project_dir)
+    html_path = f"static/{project_dir}/storyboard.html"
+    with open(html_path, "w") as f:
+        f.write(html_content)
+
+    return jsonify({
+        "project_dir": project_dir,
+        "svg_paths": svg_paths,
+        "html_path": f"/{html_path}",
+        "total_frames": frame_num,
+    })
+
+
+@app.route("/api/shorts/export-pdf", methods=["POST"])
+def shorts_export_pdf():
+    """Generate PDF and return as download."""
+    storyboard_json = request.get_json()
+    if not storyboard_json:
+        return jsonify({"error": "No storyboard JSON"}), 400
+
+    project_dir = storyboard_json.get("_project_dir", "")
+    title = storyboard_json.get("metadata", {}).get("title", "Shorts Storyboard")
+
+    from services.exporter import shorts_storyboard_to_pdf
+    buffer = shorts_storyboard_to_pdf(storyboard_json, f"static/{project_dir}", title)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"{title[:50]}.pdf",
+        mimetype="application/pdf",
+    )
+
+
+@app.route("/api/shorts/redo", methods=["POST"])
+def shorts_redo():
+    """SSE stream — regenerate with feedback."""
+    script = request.form.get("script", "")
+    feedback = request.form.get("feedback", "")
+    previous_json = request.form.get("storyboard_json", "")
+    project_dir = request.form.get("project_dir", "")
+
+    images = []
+    images_path = f"static/{project_dir}/images.json"
+    if os.path.exists(images_path):
+        with open(images_path, "r") as f:
+            images = json.load(f)
+
+    return sse_stream(
+        generate_visual_storyboard_stream(script, images, feedback=feedback, previous_json=previous_json)
+    )
+
+
+@app.route("/api/shorts/add-image", methods=["POST"])
+def shorts_add_image():
+    """Add a new image and get LLM to place it in the storyboard."""
+    file = request.files.get("file")
+    script = request.form.get("script", "")
+    storyboard_json = request.form.get("storyboard_json", "")
+    project_dir = request.form.get("project_dir", "")
+
+    if not file:
+        return jsonify({"error": "No file"}), 400
+
+    import base64
+    from PIL import Image as PILImage
+    import io
+
+    img_bytes = file.read()
+    b64 = base64.b64encode(img_bytes).decode()
+    content_type = file.content_type or "image/png"
+
+    # Get dimensions
+    try:
+        pil_img = PILImage.open(io.BytesIO(img_bytes))
+        w, h = pil_img.size
+    except Exception:
+        w, h = 0, 0
+
+    new_image = {
+        "media_type": content_type,
+        "data": b64,
+        "description": f"User-uploaded image ({w}x{h}px)",
+        "width": w,
+        "height": h,
+    }
+
+    # Save to screenshots dir
+    screenshots_dir = f"static/{project_dir}/screenshots"
+    os.makedirs(screenshots_dir, exist_ok=True)
+    existing = len([f for f in os.listdir(screenshots_dir) if f.startswith("img_")])
+    new_path = os.path.join(screenshots_dir, f"img_{existing}.png")
+    with open(new_path, "wb") as f:
+        f.write(img_bytes)
+
+    # Also update images.json
+    images_path = f"static/{project_dir}/images.json"
+    images = []
+    if os.path.exists(images_path):
+        with open(images_path, "r") as f:
+            images = json.load(f)
+    images.append(new_image)
+    with open(images_path, "w") as f:
+        json.dump(images, f)
+
+    return sse_stream(add_image_to_storyboard_stream(storyboard_json, new_image, script))
 
 
 if __name__ == "__main__":

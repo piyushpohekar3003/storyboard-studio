@@ -1,0 +1,8 @@
+screens/
+__pycache__/
+*.pyc
+.env
+data/
+.claude/
+static/projects/
+static/sbi-icici-short/screenshots/

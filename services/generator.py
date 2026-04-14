@@ -86,53 +86,102 @@ Rewrite ONLY the selected section based on the feedback. Keep everything else ex
 
 def structure_script_stream(script, category_key):
     """Reformat a raw script to match a category's visual framework pattern."""
-    system = """You are a video script structurer for Angel One Bytes — short-form financial news reels (30-60 seconds).
+    # Category-specific strict patterns
+    CATEGORY_PATTERNS = {
+        'stock': """## STRICT PATTERN: Stock Price Movement
 
-You restructure raw scripts to follow precise visual framework patterns. Each category has a defined sequence of visual types.
+You MUST follow this EXACT sequence. REORDER the script content to fit this structure:
+
+LINE 1: [Avatar + Stock Card] — MUST open with the stock name and price movement (e.g. "X is up Y% today"). This is the HOOK. Extract the price data from anywhere in the script and put it FIRST.
+LINE 2: [B-roll + Text] — First catalyst/reason for the move. | Supers: key data points
+LINE 3: [B-roll + Text] — Second catalyst/reason. | Supers: key data points
+LINE 4: [Avatar + Text] — The "so what" / analysis / significance. | Supers: key takeaway
+LINE 5: [Avatar] — CTA: "Stay in the loop with Angel One Bytes for more updates."
+
+CRITICAL: The price movement MUST be in LINE 1, even if it appears at the end of the raw script. Reorder accordingly. If there are more than 2 catalysts, combine them or add extra B-roll lines, but the FIRST line must ALWAYS be the price hook.""",
+
+        'ipo': """## STRICT PATTERN: IPO
+
+You MUST follow this EXACT sequence:
+
+LINE 1: [Avatar + Text] — IPO name + open/close dates. | Supers: IPO name, dates
+LINE 2: [B-roll + Text] — Company background/sector. | Supers: sector, experience
+LINE 3: [Avatar + Text] — Issue size + price band. | Supers: issue size, price band
+LINE 4: [B-roll + Text] — Lot size + minimum investment. | Supers: lot size, min investment
+LINE 5: [Avatar + Text] — Expected listing date. | Supers: listing date
+LINE 6: [Avatar + Text + Disclaimer] — GMP and listing expectation. | Supers: GMP value. MUST include disclaimer note.
+LINE 7: [Avatar] — CTA.""",
+
+        'earnings': """## STRICT PATTERN: Earnings / Results
+
+You MUST follow this EXACT sequence:
+
+LINE 1: [Avatar + Text] — Beat/miss headline (did they beat or miss?). | Supers: company, beat/miss
+LINE 2: [B-roll + Text] — Revenue figure. | Supers: revenue number, % change. [Widget ON from here]
+LINE 3: [B-roll + Text] — Profit figure. | Supers: profit number, beat/miss
+LINE 4: [B-roll + Text] — Key deal metric (TCV, order book, deals). | Supers: deal numbers
+LINE 5: [B-roll + Text] — Dividend or other metric. | Supers: dividend per share. [Widget OFF]
+LINE 6: [Avatar + Stock Card] — Stock price reaction. | Supers: stock price, % change
+LINE 7: [Avatar] — CTA.
+
+CRITICAL: Open with beat/miss verdict, NOT the numbers. Numbers come in the middle B-roll section.""",
+
+        'macro': """## STRICT PATTERN: Knowledge / Macro
+
+You MUST follow this EXACT sequence:
+
+LINE 1: [Avatar + Text] — Headline hook (the big claim/ranking/news). | Supers: key headline
+LINE 2: [B-roll + Text] — Context, data, ranking details. | Supers: numbers, rankings
+LINE 3: [B-roll + Text] — Supporting detail or how it happened. | Supers: key stats
+LINE 4: [B-roll + Text] — Implication (what it means for investors/economy). | Supers: implications
+LINE 5: [Avatar + Text] — Editorial "so what" / thesis confirmation. | Supers: thesis
+LINE 6: [Avatar] — CTA.""",
+
+        'tech': """## STRICT PATTERN: Tech / Strategic Update
+
+You MUST follow this EXACT sequence:
+
+LINE 1: [Avatar + Text] — The announcement (what happened). | Supers: company, announcement
+LINE 2: [Avatar + Stock Card] — Stock price reaction (even if flat). | Supers: price, % change
+LINE 3: [B-roll + Text] — What it enables (checklist of benefits). | Supers: ✅ benefit 1, ✅ benefit 2, ✅ benefit 3
+LINE 4: [Avatar] — Forward-looking question.
+LINE 5: [Avatar] — CTA.""",
+    }
+
+    pattern_block = CATEGORY_PATTERNS.get(category_key, CATEGORY_PATTERNS['stock'])
+
+    system = f"""You are a video script structurer for Angel One Bytes — short-form financial news reels (30-60 seconds).
+
+Your job is to REORDER and RESTRUCTURE raw scripts to follow a STRICT visual framework pattern. You must rearrange the content — do NOT just add prefixes to existing lines in their original order.
 
 ## Rules
-- The screen shows EITHER the presenter OR full-screen b-roll at any given time — never both simultaneously.
+- The screen shows EITHER the presenter OR full-screen b-roll — never both simultaneously.
 - Supers (text overlays) can accompany both presenter and b-roll shots.
-- Keep the script concise — this is a reel, not a documentary.
-- Every script ends with a CTA: "Stay in the loop with Angel One Bytes for more updates." or "Subscribe to Angel One Bytes for more updates."
+- Keep it concise — this is a reel, 30-60 seconds.
+- REORDER content from the raw script to fit the pattern. The raw script's line order does NOT matter.
+- Every script ends with a CTA.
 
-## Category Frameworks
-
-### Stock Price Movement
-Pattern: Avatar+StockCard (price hook) → B-roll+Text (catalyst 1) → B-roll+Text (catalyst 2) → Avatar+Text (so-what) → Avatar (CTA)
-Hook is always the price move. Middle sections explain the "why".
-
-### IPO
-Pattern: Avatar+Text (name+dates) → B-roll+Text (company context) → Avatar+Text (price band, issue size) → B-roll+Text (lot size, min investment) → Avatar+Text (listing date) → Avatar+Text+Disclaimer (GMP) → Avatar (CTA)
-Data-heavy — dates, price band, lot size, GMP. GMP section always carries a disclaimer.
-
-### Earnings / Results
-Pattern: Avatar+Text (beat/miss headline) → [Persistent widget ON] → B-roll+Text (revenue) → B-roll+Text (profit) → B-roll+Text (TCV/deals) → B-roll+Text (dividend) → [Widget OFF] → Avatar+StockCard (price reaction) → Avatar (CTA)
-Number after number. A persistent on-screen widget gives visual continuity during the data section.
-
-### Knowledge / Macro
-Pattern: Avatar+Text (headline/hook) → B-roll+Text (context/ranking/data) → B-roll+Text (supporting detail) → B-roll+Text (implication) → Avatar+Text (so-what/thesis) → Avatar (CTA)
-Narrative-driven, more cinematic. Text overlays support key stats.
-
-### Tech / Strategic Update
-Pattern: Avatar+Text (announcement) → Avatar+StockCard (price reaction) → B-roll+Text (benefits checklist) → Avatar (forward-looking question) → Avatar (CTA)
-Opens with announcement, grounds with stock card, checklist benefits in middle.
+{pattern_block}
 
 ## Output Format
-Output the restructured script as plain text, with each line prefixed by the visual type in brackets:
-[Avatar + Stock Card] Voiceover line here...
-[B-roll + Text] Voiceover line here... | Supers: TEXT1, TEXT2
-[Avatar + Text] Voiceover line here... | Supers: TEXT1
-[Avatar] CTA line here...
+Each line must start with a visual type prefix in brackets, followed by the voiceover text, followed by | Supers: if applicable.
 
-Include super suggestions after a | pipe character where relevant."""
+Example:
+[Avatar + Stock Card] Stock X is up 15% today — and here's why. | Supers: STOCK X, ↑ 15%
+[B-roll + Text] The company just announced a major deal worth $2 billion. | Supers: $2B deal, Major expansion
+[Avatar + Text] This could be a turning point for the sector. | Supers: Sector turning point
+[Avatar] Stay in the loop with Angel One Bytes for more updates.
 
-    user_msg = f"""Restructure this raw script to follow the **{category_key}** category framework pattern.
+DO NOT just prefix the raw script lines in order. RESTRUCTURE the content to match the pattern."""
+
+    user_msg = f"""Restructure this raw script to STRICTLY follow the **{category_key}** category framework.
+
+IMPORTANT: REORDER the content. The pattern dictates which information comes first, second, etc. Extract and rearrange accordingly.
 
 ## Raw Script
 {script}
 
-Output the restructured script with visual type prefixes and super suggestions."""
+Output the restructured script following the EXACT pattern above."""
 
     with client.messages.stream(
         model=MODEL,

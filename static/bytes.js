@@ -431,12 +431,43 @@ function tryRenderVisuals(text, container) {
     const visuals = JSON.parse(jsonStr);
     if (Array.isArray(visuals) && visuals.length > 0) {
       container.innerHTML = renderVisualStrip(visuals);
+      lastVisualsJson = visuals;
+      const exportBtn = document.getElementById('btn-export-visuals');
+      if (exportBtn) exportBtn.style.display = 'inline-block';
     } else {
       container.innerHTML = '<p style="color:var(--t3);">Could not parse visual data. Check raw output below.</p>';
     }
   } catch (e) {
     container.innerHTML = '<p style="color:var(--t3);">Could not parse JSON. Check raw output below.</p>';
   }
+}
+
+// ── Export visuals as DOCX ──
+let lastVisualsJson = null; // stored after successful generation
+
+function exportVisuals() {
+  if (!lastVisualsJson) return alert('Generate visuals first.');
+
+  const script = document.getElementById('visual-script').value.trim();
+  const formData = new FormData();
+  formData.append('visuals', JSON.stringify(lastVisualsJson));
+  formData.append('script', script);
+  formData.append('title', 'A1 Bytes — Visual Storyboard');
+
+  fetch('/api/bytes/export', { method: 'POST', body: formData })
+    .then(resp => {
+      if (!resp.ok) throw new Error('Export failed');
+      return resp.blob();
+    })
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'A1 Bytes — Visual Storyboard.pdf';
+      a.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch(err => alert('Export error: ' + err.message));
 }
 
 // ── Utility: Copy text ──

@@ -28,11 +28,12 @@ def init_db():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    # Add column if upgrading from old schema
-    try:
-        conn.execute("ALTER TABLE projects ADD COLUMN research_images TEXT")
-    except Exception:
-        pass
+    # Add columns if upgrading from old schema
+    for col in ["research_images TEXT", "visual_storyboard TEXT"]:
+        try:
+            conn.execute(f"ALTER TABLE projects ADD COLUMN {col}")
+        except Exception:
+            pass
     conn.commit()
     conn.close()
 

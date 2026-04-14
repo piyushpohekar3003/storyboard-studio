@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+{% block title %}Shorts Visual Storyboard{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ── Shorts-specific styles ── */
+.shorts-header { text-align: center; padding: 40px 0 28px; animation: fadeUp 0.4s ease-out both; }
+.shorts-header h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; color: var(--t1); margin-bottom: 4px; }
+.shorts-header p { font-size: 13px; color: var(--t2); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+
+/* Input methods tabs */
+.input-method-tabs {
+  display: flex; gap: 2px;
+  background: var(--sf); border-radius: 12px; padding: 2px;
+  margin-bottom: 20px; width: fit-content;
+}
+.input-method-tab {
+  padding: 9px 18px; border-radius: 10px;
+  font-size: 12px; font-weight: 500;
+  cursor: pointer; color: var(--t3);
+  transition: all 0.2s; user-select: none; border: none; background: none;
+}
+.input-method-tab.active {
+  background: var(--bg); color: var(--t1);
+  box-shadow: var(--sh-s); font-weight: 600;
+}
+.input-method-tab:hover { color: var(--t2); }
+
+.input-method-panel { display: none; }
+.input-method-panel.active { display: block; }
+
+/* Drop zone */
+.drop-zone {
+  border: 2px dashed var(--bd); border-radius: var(--r);
+  padding: 40px 20px; text-align: center;
+  background: rgba(255,255,255,0.5);
+  transition: all 0.2s; cursor: pointer;
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--blue);
+  background: rgba(72,149,239,0.04);
+}
+.drop-zone .drop-icon { font-size: 32px; margin-bottom: 8px; color: var(--t3); }
+.drop-zone .drop-text { font-size: 13px; color: var(--t2); }
+.drop-zone .drop-hint { font-size: 11px; color: var(--t3); margin-top: 4px; }
+.drop-zone input[type="file"] { display: none; }
+
+/* Image thumbnails grid */
+.thumb-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px; margin-top: 16px;
+}
+.thumb-item {
+  position: relative; border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--bd); background: var(--sf);
+  aspect-ratio: 9/16;
+}
+.thumb-item img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.thumb-item .thumb-num {
+  position: absolute; top: 4px; left: 4px;
+  background: rgba(0,0,0,0.6); color: #fff;
+  font-size: 10px; font-weight: 600;
+  padding: 2px 6px; border-radius: 4px;
+}
+.thumb-item .thumb-remove {
+  position: absolute; top: 4px; right: 4px;
+  background: rgba(255,59,48,0.85); color: #fff;
+  border: none; border-radius: 50%; width: 20px; height: 20px;
+  font-size: 12px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s;
+}
+.thumb-item:hover .thumb-remove { opacity: 1; }
+
+/* Add-more drop zone (smaller) */
+.add-more-zone {
+  border: 2px dashed var(--bdl); border-radius: var(--rs);
+  padding: 14px; text-align: center; margin-top: 12px;
+  cursor: pointer; transition: all 0.2s;
+  font-size: 11px; color: var(--t3);
+}
+.add-more-zone:hover {
+  border-color: var(--blue); color: var(--blue);
+}
+.add-more-zone input[type="file"] { display: none; }
+
+/* Generate button (big) */
+.btn-generate-big {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 14px 24px; margin-top: 24px;
+  background: var(--blue); color: white;
+  border: none; border-radius: var(--r);
+  font-size: 14px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 2px 12px rgba(72,149,239,0.3);
+}
+.btn-generate-big:hover {
+  background: #3a7bd5;
+  box-shadow: 0 4px 20px rgba(72,149,239,0.4);
+  transform: translateY(-1px);
+}
+.btn-generate-big:active { transform: translateY(0); }
+.btn-generate-big:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+.btn-generate-big.loading { position: relative; color: transparent; pointer-events: none; }
+.btn-generate-big.loading::after {
+  content: ''; position: absolute;
+  width: 20px; height: 20px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: white; border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  display: none; text-align: center; padding: 60px 20px;
+}
+.loading-overlay.active { display: block; }
+.loading-overlay .spinner-ring {
+  width: 48px; height: 48px; margin: 0 auto 16px;
+  border: 3px solid var(--bdl);
+  border-top-color: var(--blue); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.loading-overlay .loading-text {
+  font-size: 14px; color: var(--t2); font-weight: 500;
+}
+.loading-overlay .loading-sub {
+  font-size: 12px; color: var(--t3); margin-top: 4px;
+}
+.loading-overlay .stream-preview {
+  margin-top: 20px; text-align: left;
+  max-height: 200px; overflow-y: auto;
+  padding: 16px; background: var(--sf); border-radius: var(--rs);
+  font-size: 11px; line-height: 1.6; color: var(--t3);
+  font-family: 'JetBrains Mono', monospace;
+  white-space: pre-wrap;
+}
+
+/* ── Preview Panel (dark storyboard view) ── */
+.preview-panel { display: none; }
+.preview-panel.active { display: block; }
+
+.preview-action-bar {
+  display: flex; gap: 8px; align-items: center;
+  margin-bottom: 20px; flex-wrap: wrap;
+}
+.preview-action-bar .spacer { flex: 1; }
+
+.storyboard-view {
+  background: #060609; border-radius: 16px;
+  padding: 32px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.sb-header {
+  text-align: center; padding: 28px 20px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 32px;
+}
+.sb-header h2 {
+  font-family: 'Poppins', sans-serif; font-size: 28px;
+  letter-spacing: 2px; color: #ffd700;
+  text-shadow: 0 0 20px rgba(255,215,0,0.3);
+}
+.sb-header p { font-size: 12px; color: #6a6a7a; margin-top: 4px; }
+.sb-header .sb-meta {
+  display: flex; gap: 16px; justify-content: center;
+  margin-top: 12px; flex-wrap: wrap;
+}
+.sb-header .sb-tag {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 3px 12px; border-radius: 20px;
+  font-size: 10px; color: #b0b0b8; letter-spacing: 1px;
+}
+
+.sb-section-divider {
+  text-align: center; padding: 16px 0; margin: 8px 0;
+  position: relative;
+}
+.sb-section-divider::before {
+  content: ''; display: block; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,215,0,0.2), transparent);
+  position: relative; top: 10px;
+}
+.sb-section-divider span {
+  font-family: 'Poppins', sans-serif; font-size: 13px;
+  letter-spacing: 4px; color: #ffd700;
+  background: #060609; padding: 0 20px; position: relative;
+}
+
+.sb-frame-row {
+  display: flex; gap: 32px; align-items: flex-start;
+  margin-bottom: 36px;
+}
+.sb-svg-frame {
+  width: 360px; height: 640px; border-radius: 14px;
+  overflow: hidden; border: 1px solid rgba(255,255,255,0.06);
+  background: #0a0a0f; flex-shrink: 0;
+}
+.sb-svg-frame object { width: 100%; height: 100%; border: 0; }
+.sb-svg-frame .svg-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: #3a3a4a; font-size: 13px;
+}
+
+.sb-frame-info { flex: 1; padding-top: 12px; }
+.sb-frame-num {
+  font-family: 'Poppins', sans-serif; font-size: 18px;
+  color: #6a6a7a; letter-spacing: 2px; margin-bottom: 4px;
+}
+.sb-frame-type {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 2px; padding: 3px 10px; border-radius: 4px;
+  display: inline-block; margin-bottom: 14px;
+}
+.sb-frame-type.presenter { background: rgba(0,229,255,0.1); color: #00e5ff; border: 1px solid rgba(0,229,255,0.2); }
+.sb-frame-type.data { background: rgba(255,215,0,0.1); color: #ffd700; border: 1px solid rgba(255,215,0,0.2); }
+.sb-frame-type.chart { background: rgba(0,229,160,0.1); color: #00e5a0; border: 1px solid rgba(0,229,160,0.2); }
+.sb-frame-type.cta { background: rgba(179,136,255,0.1); color: #b388ff; border: 1px solid rgba(179,136,255,0.2); }
+.sb-frame-type.broll { background: rgba(255,150,0,0.1); color: #ff9600; border: 1px solid rgba(255,150,0,0.2); }
+
+.sb-info-section { margin-bottom: 14px; }
+.sb-info-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 2px; margin-bottom: 5px;
+  display: flex; align-items: center; gap: 6px;
+}
+.sb-info-label.dialogue { color: #00e5ff; }
+.sb-info-label.visual { color: #ffd700; }
+.sb-info-label.screenshot { color: #00e5a0; }
+.sb-info-content {
+  font-size: 13px; color: #b0b0b8; line-height: 1.7;
+  padding-left: 20px; border-left: 2px solid rgba(255,255,255,0.06);
+}
+.sb-info-content em { color: #6a6a7a; font-style: italic; }
+
+/* Feedback panel */
+.feedback-panel {
+  margin-top: 24px; padding: 20px;
+  background: var(--sf); border-radius: var(--r);
+  border: 1px solid var(--bdl);
+}
+.feedback-panel label {
+  font-size: 12px; font-weight: 600; color: var(--t1);
+  display: block; margin-bottom: 8px;
+}
+.feedback-row { display: flex; gap: 8px; align-items: flex-start; }
+.feedback-row textarea { flex: 1; min-height: 60px; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .sb-frame-row { flex-direction: column; }
+  .sb-svg-frame { width: 100%; max-width: 360px; }
+  .preview-action-bar { flex-direction: column; align-items: stretch; }
+  .preview-action-bar .spacer { display: none; }
+}
+</style>
+
+<!-- ═══ State: Input Panel ═══ -->
+<div id="input-panel">
+  <div class="shorts-header">
+    <h2>Shorts Visual Storyboard</h2>
+    <p>Upload a script document or paste text. Images will be extracted and placed automatically.</p>
+  </div>
+
+  <div class="card glass" style="animation-delay:0.06s;">
+    <!-- Input method tabs -->
+    <div class="input-method-tabs">
+      <button class="input-method-tab active" data-method="paste" onclick="switchInputMethod('paste')">Paste Script</button>
+      <button class="input-method-tab" data-method="gdoc" onclick="switchInputMethod('gdoc')">Google Doc URL</button>
+      <button class="input-method-tab" data-method="upload" onclick="switchInputMethod('upload')">Upload File</button>
+    </div>
+
+    <!-- Method: Paste -->
+    <div class="input-method-panel active" id="method-paste">
+      <label class="section-label">Script Text</label>
+      <textarea id="script-textarea" class="glass-input" rows="12"
+        placeholder="Paste your short-form script here..."></textarea>
+    </div>
+
+    <!-- Method: Google Doc -->
+    <div class="input-method-panel" id="method-gdoc">
+      <label class="section-label">Google Doc URL</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="gdoc-url" class="glass-input"
+          placeholder="https://docs.google.com/document/d/..." style="flex:1;">
+        <button class="btn btn-secondary" id="btn-fetch-gdoc" onclick="handleGDocFetch()">Fetch</button>
+      </div>
+      <p style="font-size:11px;color:var(--t3);margin-top:6px;">Document must be publicly accessible or shared with the service account.</p>
+    </div>
+
+    <!-- Method: File Upload -->
+    <div class="input-method-panel" id="method-upload">
+      <label class="section-label">Upload DOCX or PDF</label>
+      <div class="drop-zone" id="file-drop-zone">
+        <div class="drop-icon">&#128196;</div>
+        <div class="drop-text">Drop a file here or click to browse</div>
+        <div class="drop-hint">Supports .docx, .pdf</div>
+        <input type="file" id="file-input" accept=".docx,.pdf">
+      </div>
+      <div id="file-name" style="font-size:12px;color:var(--t2);margin-top:8px;display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Extracted images -->
+  <div id="images-section" class="card glass" style="display:none;">
+    <div class="section-header">
+      <h3>Extracted Images</h3>
+      <div class="line"></div>
+      <div class="actions">
+        <span style="font-size:11px;color:var(--t3);" id="image-count">0 images</span>
+      </div>
+    </div>
+    <div class="thumb-grid" id="thumb-grid"></div>
+    <div class="add-more-zone" id="add-more-zone">
+      + Add more images
+      <input type="file" id="add-image-input" accept="image/*" multiple>
+    </div>
+  </div>
+
+  <!-- Generate button -->
+  <button class="btn-generate-big" id="btn-generate" onclick="generateStoryboard()">
+    Generate Storyboard
+  </button>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="spinner-ring"></div>
+    <div class="loading-text">Generating storyboard...</div>
+    <div class="loading-sub" id="loading-sub">Streaming response from LLM</div>
+    <div class="stream-preview" id="stream-preview"></div>
+  </div>
+</div>
+
+<!-- ═══ State: Preview Panel ═══ -->
+<div id="preview-panel" class="preview-panel">
+  <div class="preview-action-bar">
+    <button class="btn btn-secondary" onclick="backToEdit()">&#8592; Back to Edit</button>
+    <div class="spacer"></div>
+    <button class="btn btn-secondary" id="btn-export-pdf" onclick="exportPDF()">Export PDF</button>
+    <button class="btn btn-primary" id="btn-download-html" onclick="downloadHTML()">Download HTML</button>
+  </div>
+
+  <div class="storyboard-view" id="storyboard-view">
+    <!-- Populated dynamically by JS -->
+  </div>
+
+  <!-- Feedback / Redo -->
+  <div class="feedback-panel">
+    <label>Give feedback to regenerate</label>
+    <div class="feedback-row">
+      <textarea id="feedback-textarea" class="glass-input" rows="3"
+        placeholder="e.g. Make the hook more dramatic, add a data card for revenue..."></textarea>
+      <button class="btn btn-primary" id="btn-redo" onclick="submitFeedback()" style="align-self:flex-end;">
+        Redo
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/shorts.js"></script>
+{% endblock %}
