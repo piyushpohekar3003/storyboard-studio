@@ -282,30 +282,30 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_text_overlays(self, elements: list) -> str:
-        """Stack of centered text lines in the y=700-950 range."""
+        """Stack of centered text lines ABOVE presenter (y=300-750 safe zone)."""
         svg = '  <g id="PRESENTER-TEXT">\n'
         n = len(elements)
         if n == 0:
             svg += "  </g>\n"
             return svg
 
-        # Distribute text vertically in the 700-950 range
+        # Distribute text in y=350-750 range (well above presenter at y=1000)
         if n == 1:
-            y_positions = [800]
+            y_positions = [550]
         elif n == 2:
-            y_positions = [750, 880]
+            y_positions = [420, 600]
         elif n == 3:
-            y_positions = [700, 820, 940]
+            y_positions = [350, 500, 650]
         else:
-            step = 250 // max(n - 1, 1)
-            y_positions = [700 + i * step for i in range(n)]
+            step = 400 // max(n - 1, 1)
+            y_positions = [350 + i * step for i in range(n)]
 
         for i, elem in enumerate(elements):
             text = elem.get("text", "")
             color = _color(elem.get("color", "white"))
             font_size = elem.get("font_size", 48)
             weight = elem.get("weight", "400")
-            y = y_positions[i] if i < len(y_positions) else 700 + i * 80
+            y = y_positions[i] if i < len(y_positions) else 350 + i * 100
 
             weight_attr = f' font-weight="{weight}"' if weight != "400" else ""
             svg += (
@@ -317,15 +317,16 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_ranking_cards(self, element: dict) -> str:
-        """Stacked ranking rows with optional badge pills."""
+        """Stacked ranking rows with optional badge pills (must fit above y=950)."""
         items = element.get("items", [])
         svg = '  <g id="RANKING">\n'
 
-        start_y = 520
-        gap = 170
+        n = len(items)
         card_w = 880
-        card_h = 130
+        card_h = 110
         card_x = 100
+        gap = min(140, (900 - 300) // max(n, 1))  # shrink if many items
+        start_y = max(250, 950 - n * gap - 50)     # push up if needed
 
         for i, item in enumerate(items):
             y = start_y + i * gap
@@ -390,15 +391,17 @@ class ShortsFrameRenderer:
         return svg
 
     def _render_callout_cards(self, element: dict) -> str:
-        """Numbered callout cards stacked vertically."""
+        """Numbered callout cards stacked vertically (must fit above y=950)."""
         items = element.get("items", [])
         svg = '  <g id="CALLOUT-CARDS">\n'
 
-        start_y = 560
-        gap = 160
+        # Dynamically size to fit all items above y=950
+        n = len(items)
+        card_h = 100
+        gap = min(140, (900 - 350) // max(n, 1))  # shrink gap if many items
+        start_y = max(300, 950 - n * gap - 50)     # push up if needed
         card_x = 140
         card_w = 800
-        card_h = 120
 
         for i, item in enumerate(items):
             y = start_y + i * gap
