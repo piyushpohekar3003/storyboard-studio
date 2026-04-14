@@ -474,7 +474,7 @@ def shorts_render():
             filepath = f"static/{project_dir}/{filename}"
             with open(filepath, "w") as f:
                 f.write(svg_string)
-            svg_paths.append(filename)
+            svg_paths.append(f"/static/{project_dir}/{filename}")
 
     # Copy aparna.png into project dir
     aparna_src = os.path.join("static", "aparna.png")

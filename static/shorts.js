@@ -246,10 +246,7 @@ async function renderStoryboard() {
     const resp = await fetch('/api/shorts/render', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        storyboard: currentStoryboardJson,
-        project_dir: projectDir,
-      }),
+      body: JSON.stringify(Object.assign({}, currentStoryboardJson, { _project_dir: projectDir })),
     });
 
     if (!resp.ok) throw new Error(`Render failed: ${resp.status}`);
@@ -276,8 +273,8 @@ async function renderStoryboard() {
 
 // ── Build preview HTML ──
 function buildPreviewHTML(json, svgPaths) {
-  const title = json.title || 'Untitled Storyboard';
-  const frames = json.frames || json.sections || [];
+  const meta = json.metadata || {};
+  const title = meta.title || json.title || 'Untitled Storyboard';
   const sections = json.sections || [];
 
   let html = '';
@@ -298,18 +295,19 @@ function buildPreviewHTML(json, svgPaths) {
   // If sections-based structure
   if (sections.length > 0 && sections[0].frames) {
     sections.forEach(section => {
-      if (section.name) {
-        html += `<div class="sb-section-divider"><span>${escapeHtml(section.name.toUpperCase())}</span></div>`;
+      const sectionName = section.section_label || section.name || section.label || '';
+      if (sectionName) {
+        html += `<div class="sb-section-divider"><span>${escapeHtml(sectionName.toUpperCase())}</span></div>`;
       }
       (section.frames || []).forEach((frame, fi) => {
         html += buildFrameRow(frame, svgPaths);
       });
     });
   }
-  // If flat frames array
-  else if (Array.isArray(frames) && frames.length > 0 && !frames[0].frames) {
+  // If flat frames array (fallback)
+  else if (json.frames && Array.isArray(json.frames)) {
     let lastSection = '';
-    frames.forEach(frame => {
+    json.frames.forEach(frame => {
       if (frame.section && frame.section !== lastSection) {
         html += `<div class="sb-section-divider"><span>${escapeHtml(frame.section.toUpperCase())}</span></div>`;
         lastSection = frame.section;
@@ -332,7 +330,14 @@ function buildFrameRow(frame, svgPaths) {
   if (svgPaths && svgPaths.length > 0) {
     const svgPath = svgPaths.find(p => p.includes(`frame-${numPadded}`));
     if (svgPath) {
-      svgTag = `<object data="${svgPath}" type="image/svg+xml" style="width:100%;height:100%;border:0;"></object>`;
+      svgTag = `<object data="${svgPath}" type="image/svg+xml" style="width:100%;height:100%;border:0;background:#0a0a0f;"></object>`;
+    }
+  }
+  // Fallback: try by index
+  if (svgTag.includes('svg-placeholder') && svgPaths && svgPaths.length >= num) {
+    const svgPath = svgPaths[num - 1];
+    if (svgPath) {
+      svgTag = `<object data="${svgPath}" type="image/svg+xml" style="width:100%;height:100%;border:0;background:#0a0a0f;"></object>`;
     }
   }
 
@@ -453,10 +458,7 @@ async function exportPDF() {
     const resp = await fetch('/api/shorts/export-pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        storyboard: currentStoryboardJson,
-        project_dir: projectDir,
-      }),
+      body: JSON.stringify(Object.assign({}, currentStoryboardJson, { _project_dir: projectDir })),
     });
 
     if (!resp.ok) throw new Error(`Export failed: ${resp.status}`);
